@@ -1,2 +1,66 @@
-<h1>Bem-vindo(a), {{userName}}!</h1>
-<p>Este é o seu painel principal. Aqui estão as estatísticas mais recentes.</p>
+{{!-- Carrossel de Destaques --}}
+<section class="featured-carousel-section">
+    <div class="swiper featured-carousel">
+        <div class="swiper-wrapper">
+            {{#each destaques}}
+            <div class="swiper-slide" style="background-image: url('/uploads/{{this.fotos_paths.[0]}}');">
+                <div class="slide-content">
+                    <h1>{{this.marca}} {{this.modelo}}</h1>
+                    <p>{{this.ano}}  R$ {{this.valor_venda}}</p>
+                    <a href="/veiculo/{{this.id}}" class="btn-slide">Ver Detalhes</a>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-pagination"></div>
+    </div>
+</section>
+
+{{!-- Seção de Veículos Recentes --}}
+<section class="vehicle-grid-section">
+    <div class="section-title">
+        <h2>Veículos Recentes</h2>
+        <p>Confira as novidades em nosso estoque</p>
+    </div>
+    <div class="vehicle-grid">
+        {{#each recentes}}
+        <div class="vehicle-card">
+            <div class="card-image">
+    <img src="/uploads/{{this.fotos_paths.[0]}}" alt="{{this.marca}} {{this.modelo}}">
+</div>
+            <div class="card-content">
+                <h4>{{this.marca}} {{this.modelo}}</h4>
+                <p class="card-details">{{this.ano_modelo}} | {{this.km}} km</p>
+                <p class="card-price">R$ {{this.valor_venda}}</p>
+                <a href="/veiculo/{{this.id}}" class="btn-card">Ver Detalhes</a>
+            </div>
+        </div>
+        {{/each}}
+    </div>
+    <div class="view-all-wrapper">
+        <a href="/veiculos_" class="btn-view-all">Ver Estoque Completo</a>
+    </div>
+</section>
+
+{{!-- O JavaScript do Swiper pode vir aqui ou no seu JS global se preferir --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const swiper = new Swiper(".featured-carousel", {
+            loop: true,
+            autoplay: {
+                delay: 5000,
+                disableOnInteraction: false,
+            },
+            pagination: {
+                el: ".swiper-pagination",
+                clickable: true,
+            },
+            navigation: {
+                nextEl: ".swiper-button-next",
+                prevEl: ".swiper-button-prev",
+            },
+        });
+    });
+</script>

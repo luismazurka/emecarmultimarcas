@@ -78,13 +78,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (fotos && Array.isArray(fotos) && fotos.length > 0) {
-            html += '<h4 style="margin-top: 1rem;">Fotos</h4><div class="galeria" style="margin-top: 0.5rem;">';
-            fotos.forEach(path => {
-                const cleanPath = path.replace(/\\/g, '/').replace('public/', '');
-                html += `<a href="/${cleanPath}" target="_blank"><img src="/${cleanPath}" alt="Foto do veículo" style="width: 150px; height: auto; border-radius: 5px; margin: 5px;" /></a>`;
-            });
-            html += '</div>';
-        }
+    html += '<h4 style="margin-top: 1rem;">Fotos</h4><div class="galeria" style="margin-top: 0.5rem;">';
+    fotos.forEach(path => {
+        // 'path' agora é apenas o nome do arquivo (ex: "foto-123.jpg").
+        // Nós simplesmente montamos a URL completa que o navegador entende.
+        const imageUrl = `/uploads/${path}`;
+        
+        // Usamos a URL completa tanto no link (<a>) quanto na imagem (<img>)
+        html += `<a href="${imageUrl}" target="_blank"><img src="${imageUrl}" alt="Foto do veículo" style="width: 150px; height: auto; border-radius: 5px; margin: 5px;" /></a>`;
+    });
+    html += '</div>';
+}
         // **FIM DA CORREÇÃO**
 
         return html;

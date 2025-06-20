@@ -71,6 +71,66 @@ app.set('views', path.join(__dirname, 'src/views'));
 // =========================================================================
 // 5. ROTAS PÚBLICAS (NÃO PRECISAM DE LOGIN)
 // =========================================================================
+
+/* ROTA PARA A PÁGINA INICIAL PÚBLICA */
+app.get('/', async (req, res, next) => {
+    try {
+        // 1. Busca os veículos do banco de dados
+        const destaquesDb = await knex('vehicles')
+            .where({ 'destaque_site': true, 'exibir_site': true })
+            .orderBy('created_at', 'desc')
+            .limit(8);
+
+        const recentesDb = await knex('vehicles')
+            .where('exibir_site', true)
+            .orderBy('created_at', 'desc')
+            .limit(8);
+
+        // 2. Função para converter a string JSON de fotos em um array real
+        const parseVeiculos = (veiculos) => {
+            return veiculos.map(vehicle => {
+                let fotosArray = [];
+                // Verifica se o campo existe e é uma string antes de tentar converter
+                if (vehicle.fotos_paths && typeof vehicle.fotos_paths === 'string') {
+                    try {
+                        // Converte a string '["foto1.jpg"]' para um array ["foto1.jpg"]
+                        fotosArray = JSON.parse(vehicle.fotos_paths);
+                    } catch (e) {
+                        console.error(`Erro ao converter JSON para o veículo ID ${vehicle.id}:`, e);
+                        // Em caso de erro, continua com um array vazio para não quebrar a página
+                        fotosArray = [];
+                    }
+                } else if (Array.isArray(vehicle.fotos_paths)) {
+                    // Se já for um array, apenas usa
+                    fotosArray = vehicle.fotos_paths;
+                }
+                
+                // Retorna o objeto do veículo com a propriedade fotos_paths corrigida
+                return {
+                    ...vehicle,
+                    fotos_paths: fotosArray
+                };
+            });
+        };
+
+        // 3. Aplica a correção nos dados
+        const destaques = parseVeiculos(destaquesDb);
+        const recentes = parseVeiculos(recentesDb);
+
+        // 4. Renderiza a página com os dados prontos para o template
+        res.render('home', {
+            title: 'Seu Próximo Carro Está Aqui',
+            layout: 'public_layout',
+            destaques,
+            recentes
+        });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
+
 app.get('/login', (req, res) => { res.render('login', { layout: false }); });
 
 app.post('/login', async (req, res) => {
@@ -84,7 +144,8 @@ app.post('/login', async (req, res) => {
         if (passwordMatch) {
             req.session.userId = user.id;
             req.session.userName = user.name;
-            res.redirect('/');
+            // CORREÇÃO AQUI: Redireciona para o painel após o login
+            res.redirect('/painel'); 
         } else {
             return res.render('login', { layout: false, error: 'Utilizador ou senha inválidos.' });
         }
@@ -94,6 +155,15 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.get('/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            return res.redirect('/painel');
+        }
+        res.clearCookie('connect.sid');
+        res.redirect('/login');
+    });
+});
 
 // =========================================================================
 // 6. ROTAS PROTEGIDAS - RENDERIZAÇÃO DE PÁGINAS
@@ -107,9 +177,7 @@ app.get('/logout', (req, res) => {
     });
 });
 
-app.get('/', requireLogin, (req, res) => {
-    res.redirect('/painel'); // Redireciona a raiz para o painel
-});
+
 
 app.get('/painel', requireLogin, async (req, res) => {
     try {
@@ -431,31 +499,66 @@ app.get('/api/veiculos/:id', requireLogin, async (req, res) => {
         res.status(500).json({ error: 'Erro interno do servidor.' });
     }
 });
+// No seu server.js
 app.post('/api/veiculos', requireLogin, vehiclePhotoUpload, async (req, res) => {
     try {
         const vehicleData = req.body;
+
+        // Limpa campos vazios
         for (const key in vehicleData) { if (vehicleData[key] === '') { vehicleData[key] = null; } }
-        vehicleData.opcionais = JSON.stringify(req.body.opcionais || []);
+
+        // --- CORREÇÃO 1: Trata os checkboxes ---
+        // Converte o valor "on" do formulário para true, e a ausência para false.
+        vehicleData.exibir_site = vehicleData.exibir_site === 'on';
+        vehicleData.destaque_site = vehicleData.destaque_site === 'on';
+
+        // Converte os opcionais para JSON
+        vehicleData.opcionais = JSON.stringify(vehicleData.opcionais || []);
+
+        // --- CORREÇÃO 2: Trata as fotos ---
+        // Verifica se foram enviados arquivos (req.files)
         if (req.files && req.files.length > 0) {
-            vehicleData.fotos_paths = JSON.stringify(req.files.map(file => file.path));
+            // Salva apenas os NOMES dos arquivos (file.filename) em vez do caminho completo (file.path)
+            vehicleData.fotos_paths = JSON.stringify(req.files.map(file => file.filename));
+        } else {
+            // Se nenhuma foto nova for enviada, garante que o campo não seja enviado como indefinido
+            delete vehicleData.fotos_paths;
         }
+
         const [newVehicleId] = await knex('vehicles').insert(vehicleData);
-        res.status(201).json({ message: 'Veículo registado com sucesso!', id: newVehicleId });
+        res.status(201).json({ message: 'Veículo registrado com sucesso!', id: newVehicleId });
     } catch (error) {
-        console.error('Erro ao registar veículo:', error);
-        res.status(500).json({ error: 'Erro interno ao registar veículo.' });
+        console.error('Erro ao registrar veículo:', error);
+        res.status(500).json({ error: 'Erro interno ao registrar veículo.' });
     }
 });
+// No seu server.js
 app.put('/api/veiculos/:id', requireLogin, vehiclePhotoUpload, async (req, res) => {
     try {
         const { id } = req.params;
         const vehicleData = req.body;
+
+        // Limpa campos vazios
         for (const key in vehicleData) { if (vehicleData[key] === '') { vehicleData[key] = null; } }
-        vehicleData.opcionais = JSON.stringify(req.body.opcionais || []);
+
+        // --- CORREÇÃO 1: Trata os checkboxes ---
+        vehicleData.exibir_site = vehicleData.exibir_site === 'on';
+        vehicleData.destaque_site = vehicleData.destaque_site === 'on';
+
+        // Converte os opcionais para JSON
+        vehicleData.opcionais = JSON.stringify(vehicleData.opcionais || []);
+
+        // --- CORREÇÃO 2: Trata as fotos ---
         if (req.files && req.files.length > 0) {
-            vehicleData.fotos_paths = JSON.stringify(req.files.map(file => file.path));
+            // Salva apenas os NOMES dos arquivos (file.filename)
+            vehicleData.fotos_paths = JSON.stringify(req.files.map(file => file.filename));
+        } else {
+            // Se nenhuma foto nova for enviada, não altera as fotos existentes
+            delete vehicleData.fotos_paths; 
         }
+
         const updatedCount = await knex('vehicles').where({ id }).update(vehicleData);
+
         if (updatedCount > 0) {
             res.json({ message: 'Veículo atualizado com sucesso!' });
         } else {
