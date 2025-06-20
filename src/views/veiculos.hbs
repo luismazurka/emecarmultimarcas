@@ -1,0 +1,180 @@
+<div class="header-container">
+    <h1>Gestão de Veículos</h1>
+    <div class="header-actions">
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="search-box" placeholder="Procurar por marca, modelo, matrícula...">
+        </div>
+        <button id="btn-cadastrar-veiculo" class="btn btn-primary">Adicionar Veículo</button>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="user-table">
+        <thead>
+            <tr>
+                <th>Veículo</th>
+                <th>Ano/Modelo</th>
+                <th>Matrícula</th>
+                <th>Valor de Venda</th>
+                <th>Status</th>
+                <th class="actions-header">Ações</th>
+            </tr>
+        </thead>
+        <tbody id="vehicle-table-body">
+            {{#each vehicles}}
+            <tr data-id="{{this.id}}">
+                <td><strong>{{this.marca}} {{this.modelo}}</strong><br><small>{{this.versao}}</small></td>
+                <td>{{this.ano_fab}}/{{this.ano_modelo}}</td>
+                <td>{{this.placa}}</td>
+                <td>R$ {{this.valor_venda}}</td>
+                <td><span class="perfil-tag" style="background-color: #007bff;">{{this.status}}</span></td>
+                <td class="action-buttons">
+                    <button class="btn-action btn-view" title="Visualizar"><i class="fas fa-eye"></i></button>
+                    <button class="btn-action btn-edit" title="Editar"><i class="fas fa-edit"></i></button>
+                    <button class="btn-action btn-delete" title="Remover"><i class="fas fa-trash-alt"></i></button>
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>
+
+<!-- ================================================================= -->
+<!-- MODAIS                                                          -->
+<!-- ================================================================= -->
+
+<!-- MODAL DE CADASTRO/EDIÇÃO DE VEÍCULO -->
+<div id="modal-veiculo" class="modal-overlay hidden">
+    <div class="modal-content modal-lg">
+        <h2 id="modal-veiculo-title">Adicionar Novo Veículo</h2>
+        <form id="veiculo-form" enctype="multipart/form-data">
+            <div class="tab-navigation">
+                <button type="button" class="tab-link active" data-tab="basico">Info. Básicas</button>
+                <button type="button" class="tab-link" data-tab="opcionais">Opcionais</button>
+                <button type="button" class="tab-link" data-tab="valores">Valores & Origem</button>
+                <button type="button" class="tab-link" data-tab="fotos">Fotos</button>
+                <button type="button" class="tab-link" data-tab="anotacoes">Desc. & Anotações</button>
+            </div>
+
+            <div class="tab-content-wrapper">
+                <!-- Aba 1: Básico -->
+                <div id="basico" class="tab-content active">
+                    <div class="form-grid">
+                        <div class="form-group"><label>Tipo</label><input name="tipo"></div>
+                        <div class="form-group"><label>Marca</label><input name="marca" required></div>
+                        <div class="form-group"><label>Modelo</label><input name="modelo" required></div>
+                        <div class="form-group"><label>Versão</label><input name="versao"></div>
+                        <div class="form-group"><label>Câmbio</label><input name="cambio"></div>
+                        <div class="form-group"><label>Ano Fab.</label><input type="number" name="ano_fab"></div>
+                        <div class="form-group"><label>Ano Mod.</label><input type="number" name="ano_modelo"></div>
+                        <div class="form-group"><label>Cor</label><input name="cor"></div>
+                        <div class="form-group"><label>Combustível</label><input name="combustivel"></div>
+                        <div class="form-group"><label>Matrícula</label><input name="placa"></div>
+                        <div class="form-group"><label>KM</label><input type="number" name="km"></div>
+                    </div>
+                </div>
+
+                <!-- Aba 2: Opcionais -->
+                <div id="opcionais" class="tab-content">
+                    <div class="form-grid checkbox-grid">
+                        <label class="checkbox-label"><input type="checkbox" name="opcionais" value="ar-condicionado"> Ar Condicionado</label>
+                        <label class="checkbox-label"><input type="checkbox" name="opcionais" value="direcao-hidraulica"> Direção Hidráulica</label>
+                        <label class="checkbox-label"><input type="checkbox" name="opcionais" value="vidros-eletricos"> Vidros Elétricos</label>
+                        <label class="checkbox-label"><input type="checkbox" name="opcionais" value="travas-eletricas"> Travas Elétricas</label>
+                        <label class="checkbox-label"><input type="checkbox" name="opcionais" value="airbag-duplo"> Airbag Duplo</label>
+                        <label class="checkbox-label"><input type="checkbox" name="opcionais" value="freios-abs"> Freios ABS</label>
+                        <label class="checkbox-label"><input type="checkbox" name="opcionais" value="banco-de-couro"> Banco de Couro</label>
+                        <label class="checkbox-label"><input type="checkbox" name="opcionais" value="teto-solar"> Teto Solar</label>
+                        <label class="checkbox-label"><input type="checkbox" name="opcionais" value="camera-de-re"> Câmara de Ré</label>
+                        <label class="checkbox-label"><input type="checkbox" name="opcionais" value="sensor-de-estacionamento"> Sensor de Estacionamento</label>
+                        <label class="checkbox-label"><input type="checkbox" name="opcionais" value="central-multimidia"> Central Multimédia</label>
+                        <label class="checkbox-label"><input type="checkbox" name="opcionais" value="rodas-de-liga"> Rodas de Liga Leve</label>
+                    </div>
+                </div>
+
+                <!-- Aba 3: Valores & Origem -->
+                <div id="valores" class="tab-content">
+                    <div class="form-grid">
+                        <div class="form-group"><label>Valor FIPE</label><input type="text" name="valor_fipe"></div>
+                        <div class="form-group"><label>Valor de Compra</label><input type="text" name="valor_compra"></div>
+                        <div class="form-group"><label>Valor de Venda</label><input type="text" name="valor_venda"></div>
+                        <div class="form-group"><label>Margem</label><input type="text" name="margem"></div>
+                        <div class="form-group grid-col-2">
+                            <label>Origem</label>
+                            <div class="radio-group">
+                                <label><input type="radio" name="origem" value="proprio"> Próprio</label>
+                                <label><input type="radio" name="origem" value="consignado"> Consignado</label>
+                            </div>
+                        </div>
+                        <div class="form-group grid-col-2">
+                            <label>Disponível em</label>
+                            <select name="disponivel_em">
+                                <option value="Multimarcas">Multimarcas</option>
+                                <option value="Premium">Premium</option>
+                                <option value="Repasses">Repasses</option>
+                            </select>
+                        </div>
+                        <div class="form-group grid-col-4">
+                            <label>Exibição no Site</label>
+                            <div class="radio-group">
+                                <label><input type="checkbox" name="exibir_site"> Exibir no site</label>
+                                <label><input type="checkbox" name="destaque_site"> Destacar no site</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Aba 4: Fotos -->
+                <div id="fotos" class="tab-content">
+                    <div class="form-group">
+                        <label>Fotos do Veículo (selecione múltiplas imagens)</label>
+                        <input type="file" name="fotos" class="file-input" multiple accept="image/*">
+                    </div>
+                </div>
+
+                <!-- Aba 5: Descrição & Anotações -->
+                <div id="anotacoes" class="tab-content">
+                    <div class="form-group">
+                        <label>Descrição (para o site)</label>
+                        <textarea name="descricao" rows="6"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Anotações (uso interno)</label>
+                        <textarea name="anotacoes" rows="6"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" data-close-modal>Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar Veículo</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL DE VISUALIZAÇÃO DE VEÍCULO -->
+<div id="modal-visualizacao-veiculo" class="modal-overlay hidden">
+    <div class="modal-content modal-lg">
+        <h2 id="view-vehicle-title">Detalhes do Veículo</h2>
+        <div id="view-vehicle-content">
+            <!-- Conteúdo será preenchido pelo JavaScript -->
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" data-close-modal>Fechar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE CONFIRMAÇÃO PARA REMOVER VEÍCULO -->
+<div id="modal-remocao-veiculo" class="modal-overlay hidden">
+    <div class="modal-content">
+        <h2>Confirmar Remoção</h2>
+        <p>Tem a certeza que deseja remover o veículo <strong id="delete-vehicle-name"></strong>? Esta ação não pode ser desfeita.</p>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" data-close-modal>Cancelar</button>
+            <button type="button" id="btn-confirmar-remocao-veiculo" class="btn btn-danger">Sim, remover</button>
+        </div>
+    </div>
+</div>
+

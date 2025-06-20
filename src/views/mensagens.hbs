@@ -1,0 +1,50 @@
+<div class="header-container">
+    <h1>Caixa de Entrada</h1>
+    <div class="header-actions">
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="search-box" placeholder="Procurar por nome, email, origem...">
+        </div>
+    </div>
+</div>
+
+<div class="filtros" style="margin-bottom: 20px;">
+    <label class="checkbox-label"><input type="checkbox" class="filtro-tipo" value="contato" checked> Contato</label>
+    <label class="checkbox-label"><input type="checkbox" class="filtro-tipo" value="financiamento" checked> Financiamento</label>
+    <label class="checkbox-label"><input type="checkbox" class="filtro-tipo" value="venda" checked> Venda</label>
+    <div style="margin-left: auto; display: flex; gap: 1rem;">
+        <label class="checkbox-label"><input type="checkbox" class="filtro-status" value="lidas"> Lidas</label>
+        <label class="checkbox-label"><input type="checkbox" class="filtro-status" value="nao-lidas" checked> Não lidas</label>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="user-table">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Origem</th>
+                <th>Data</th>
+                <th class="actions-header">Ações</th>
+            </tr>
+        </thead>
+        <tbody id="messages-table-body">
+            <!-- As mensagens serão inseridas aqui pelo JavaScript -->
+        </tbody>
+    </table>
+</div>
+
+<!-- MODAL DE VISUALIZAÇÃO DE MENSAGEM -->
+<div id="modal-mensagem" class="modal-overlay hidden">
+    <div class="modal-content">
+        <h2 id="view-message-name"></h2>
+        <p><strong>Data:</strong> <span id="view-message-date"></span></p>
+        <hr style="border-color: #eee; margin: 1rem 0;">
+        <div id="view-message-details">
+            <!-- Detalhes da mensagem serão inseridos aqui -->
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" data-close-modal>Fechar</button>
+        </div>
+    </div>
+</div>

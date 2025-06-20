@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{pageTitle}} - Painel Administrativo</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+</head>
+
+<body>
+    <aside class="sidebar">
+        <div class="logo-box">
+            <a href="/">
+                <img src="/img/logo.png" alt="Logo da loja" class="logo-img" />
+            </a>
+        </div>
+
+        <div class="search-box">
+            <input type="text" placeholder="buscar por..." />
+            <button>🔍</button>
+        </div>
+
+        <nav class="menu">
+            <ul>
+                <li><a href="/painel">📊 Painel</a></li>
+                <li><a href="/indicadores">📈 Indicadores</a></li>
+                <li><a href="/veiculos">🚗 Veículos</a></li>
+                <li><a href="/pessoas">👥 Pessoas</a></li>
+                <li><a href="/mensagens">📨 Mensagens</a></li>
+                <li><a href="/usuarios">💼 Usuários</a></li>
+            </ul>
+        </nav>
+
+        <div class="user-box">
+            <img src="/img/user.png" alt="Usuário" class="user-avatar" />
+            <div class="user-info">
+                <span class="user-name">{{userName}}</span>
+                <span class="user-role">Administrador</span>
+
+                <div class="user-actions">
+                    <a href="/logout">Sair</a>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        {{{body}}}
+    </main>
+
+    <script src="/js/script.js"></script> {{#if isUserPage}}
+    <script src="/js/usuarios.js"></script> {{/if}}
+    {{#if isPessoasPage}}
+<script src="/js/pessoas.js"></script>
+{{/if}}
+    {{#if isVeiculosPage}}
+<script src="/js/veiculos.js"></script>
+{{/if}}
+{{#if isPainelPage}}
+<script src="/js/painel.js"></script>
+{{/if}}
+{{#if isIndicadoresPage}}
+<script src="/js/indicadores.js"></script>
+{{/if}}
+{{#if isMensagensPage}}
+<script src="/js/mensagens.js"></script>
+{{/if}}
+    </body>
+
+</html>

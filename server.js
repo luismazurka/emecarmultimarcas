@@ -1,0 +1,549 @@
+// =========================================================================
+// 1. IMPORTAÇÕES E CONFIGURAÇÃO INICIAL
+// =========================================================================
+const express = require('express');
+const path = require('path');
+const hbs = require('hbs');
+const bcrypt = require('bcrypt');
+const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
+const multer = require('multer');
+const knexConfig = require('./knexfile').development;
+const knex = require('knex')(knexConfig);
+
+const app = express();
+const port = 3000;
+
+// =========================================================================
+// 2. CONFIGURAÇÃO DO MULTER (PARA UPLOAD DE FICHEIROS)
+// =========================================================================
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'public/uploads/');
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
+
+// Middlewares específicos para cada tipo de upload
+const personDocumentUpload = upload.fields([
+    { name: 'cnh', maxCount: 1 },
+    { name: 'comprovante_residencia', maxCount: 1 },
+    { name: 'comprovante_renda', maxCount: 1 }
+]);
+const vehiclePhotoUpload = upload.array('fotos', 10);
+
+
+// =========================================================================
+// 3. MIDDLEWARES DO EXPRESS
+// =========================================================================
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(
+  session({
+    store: new SQLiteStore({ db: 'dev.sqlite3', dir: './', table: 'sessions' }),
+    secret: 'mude-para-uma-frase-muito-segura-e-aleatoria',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 1000 * 60 * 60 * 24 } // 24 horas
+  })
+);
+
+const requireLogin = (req, res, next) => {
+    if (!req.session.userId) {
+        return res.redirect('/login');
+    }
+    next();
+};
+
+// =========================================================================
+// 4. CONFIGURAÇÃO DO TEMPLATE ENGINE (HBS)
+// =========================================================================
+app.set('view engine', 'hbs');
+app.set('views', path.join(__dirname, 'src/views'));
+
+
+// =========================================================================
+// 5. ROTAS PÚBLICAS (NÃO PRECISAM DE LOGIN)
+// =========================================================================
+app.get('/login', (req, res) => { res.render('login', { layout: false }); });
+
+app.post('/login', async (req, res) => {
+    try {
+        const { name, password } = req.body;
+        const user = await knex('users').where({ name: name }).first();
+        if (!user) {
+            return res.render('login', { layout: false, error: 'Utilizador ou senha inválidos.' });
+        }
+        const passwordMatch = await bcrypt.compare(password, user.password_hash);
+        if (passwordMatch) {
+            req.session.userId = user.id;
+            req.session.userName = user.name;
+            res.redirect('/');
+        } else {
+            return res.render('login', { layout: false, error: 'Utilizador ou senha inválidos.' });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.render('login', { layout: false, error: 'Ocorreu um erro no servidor.' });
+    }
+});
+
+
+// =========================================================================
+// 6. ROTAS PROTEGIDAS - RENDERIZAÇÃO DE PÁGINAS
+// =========================================================================
+
+app.get('/logout', (req, res) => {
+    req.session.destroy(err => {
+        if (err) return res.redirect('/');
+        res.clearCookie('connect.sid');
+        res.redirect('/login');
+    });
+});
+
+app.get('/', requireLogin, (req, res) => {
+    res.redirect('/painel'); // Redireciona a raiz para o painel
+});
+
+app.get('/painel', requireLogin, async (req, res) => {
+    try {
+        const vehicles = await knex('vehicles').select('*').orderBy('id', 'desc');
+        const statuses = ['preparacao', 'manutencao', 'estoque', 'testdrive', 'reserva', 'vendido'];
+        const groupedVehicles = {};
+        statuses.forEach(status => {
+            groupedVehicles[status] = vehicles.filter(v => v.status === status);
+        });
+        res.render('painel', {
+            pageTitle: 'Painel de Veículos',
+            userName: req.session.userName,
+            isPainelPage: true,
+            statuses: statuses,
+            vehiclesByStatus: groupedVehicles
+        });
+    } catch (error) {
+        console.error("Erro ao carregar o painel:", error);
+        res.status(500).send("Erro ao carregar o painel.");
+    }
+});
+
+app.get('/usuarios', requireLogin, async (req, res) => {
+    try {
+        const usersFromDB = await knex('users').select('id', 'name', 'role');
+        const formattedUsers = usersFromDB.map(user => ({ ...user, role_class: user.role.toLowerCase() }));
+        res.render('usuarios', {
+            pageTitle: 'Utilizadores',
+            userName: req.session.userName,
+            isUserPage: true,
+            users: formattedUsers
+        });
+    } catch (error) {
+        console.error("Erro ao procurar utilizadores:", error);
+        res.status(500).send("Erro ao carregar a página de utilizadores.");
+    }
+});
+
+app.get('/pessoas', requireLogin, async (req, res) => {
+    try {
+        const people = await knex('people').select('id', 'name', 'cpf', 'city', 'cell_phone').orderBy('name');
+        res.render('pessoas', {
+            pageTitle: 'Pessoas',
+            userName: req.session.userName,
+            isPessoasPage: true,
+            people: people
+        });
+    } catch (error) {
+        console.error("Erro ao procurar pessoas:", error);
+        res.status(500).send("Erro ao carregar a página de pessoas.");
+    }
+});
+
+app.get('/veiculos', requireLogin, async (req, res) => {
+    try {
+        const vehicles = await knex('vehicles').select('*').orderBy('marca', 'modelo');
+        res.render('veiculos', {
+            pageTitle: 'Veículos',
+            userName: req.session.userName,
+            isVeiculosPage: true,
+            vehicles: vehicles
+        });
+    } catch (error) {
+        console.error("Erro ao procurar veículos:", error);
+        res.status(500).send("Erro ao carregar a página de veículos.");
+    }
+});
+
+// Rota para RENDERIZAR a página de Indicadores
+// **INÍCIO DA CORREÇÃO**
+// Rota para RENDERIZAR a página de Indicadores
+app.get('/indicadores', requireLogin, async (req, res) => {
+    try {
+        const vehicles = await knex('vehicles').select('status', 'created_at', 'marca', 'modelo');
+        const today = new Date();
+        
+        vehicles.forEach(v => {
+            const entryDate = new Date(v.created_at);
+            v.dias = Math.ceil((today - entryDate) / (1000 * 60 * 60 * 24));
+        });
+
+        // 1. KPIs Principais
+        const totalVeiculos = vehicles.length;
+        const veiculosEstoque = vehicles.filter(v => v.status === 'estoque');
+        const totalDiasEstoque = veiculosEstoque.reduce((sum, v) => sum + v.dias, 0);
+        const tempoMedioEstoque = veiculosEstoque.length > 0 ? Math.round(totalDiasEstoque / veiculosEstoque.length) : 'N/A';
+        const maiorPermanencia = vehicles.length > 0 ? Math.max(...vehicles.map(v => v.dias)) : 'N/A';
+
+        // 2. Agrupamento por Status com Percentagem
+        const statusList = ['preparacao', 'manutencao', 'estoque', 'testdrive', 'reserva', 'vendido'];
+        const groupedByStatus = statusList.reduce((acc, status) => {
+            acc[status] = vehicles.filter(v => v.status === status).length;
+            return acc;
+        }, {});
+        const distribuicao = Object.entries(groupedByStatus).map(([label, count]) => ({
+            label,
+            count,
+            percentage: totalVeiculos > 0 ? ((count / totalVeiculos) * 100).toFixed(1) : 0
+        }));
+
+        // 3. Tempo Médio por Etapa com Percentagem
+        const tempoMedioPorEtapa = {};
+        statusList.forEach(status => {
+            const veiculosNoStatus = vehicles.filter(v => v.status === status);
+            const totalDias = veiculosNoStatus.reduce((sum, v) => sum + v.dias, 0);
+            tempoMedioPorEtapa[status] = veiculosNoStatus.length > 0 ? Math.round(totalDias / veiculosNoStatus.length) : 0;
+        });
+        const maxTempoMedio = Math.max(...Object.values(tempoMedioPorEtapa));
+        const tempoMedio = Object.entries(tempoMedioPorEtapa).map(([label, dias]) => ({
+            label,
+            dias: dias || 'N/A',
+            percentage: maxTempoMedio > 0 ? ((dias / maxTempoMedio) * 100) : 0
+        }));
+        
+        // 4. Veículos com Longa Permanência
+        const longaPermanencia = [...vehicles].sort((a, b) => b.dias - a.dias).slice(0, 5);
+        
+        const indicators = {
+            kpis: { totalVeiculos, tempoMedioEstoque, maiorPermanencia },
+            distribuicao: distribuicao,
+            tempoMedio: tempoMedio,
+            longaPermanencia: longaPermanencia,
+            mensal: { labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai'], entradas: [8, 12, 9, 14, 'N/A'], saidas: [5, 9, 7, 10, 'N/A'] }
+        };
+
+        res.render('indicadores', {
+            pageTitle: 'Indicadores',
+            userName: req.session.userName,
+            isIndicadoresPage: true,
+            indicators: indicators
+        });
+    } catch (error) {
+        console.error("Erro ao carregar indicadores:", error);
+        res.status(500).send("Erro ao carregar a página de indicadores.");
+    }
+});
+// **FIM DA CORREÇÃO**
+
+// Adicionar na Secção 6 - ROTAS PROTEGIDAS
+app.get('/mensagens', requireLogin, async (req, res) => {
+    try {
+        const messages = await knex('messages').select('*').orderBy('created_at', 'desc');
+        res.render('mensagens', {
+            pageTitle: 'Mensagens',
+            userName: req.session.userName,
+            isMensagensPage: true,
+            messages: messages
+        });
+    } catch (error) {
+        console.error("Erro ao procurar mensagens:", error);
+        res.status(500).send("Erro ao carregar a página de mensagens.");
+    }
+});
+
+// =========================================================================
+// 7. ROTAS DA API REST (PROTEGIDAS)
+// =========================================================================
+
+// --- API para Utilizadores ---
+app.get('/api/usuarios/:id', requireLogin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await knex('users').where({ id }).select('id', 'name', 'role', 'created_at').first();
+        if (user) {
+            res.json(user);
+        } else {
+            res.status(404).json({ error: 'Utilizador não encontrado' });
+        }
+    } catch (error) {
+        console.error('Erro ao procurar utilizador:', error);
+        res.status(500).json({ error: 'Ocorreu um erro interno.' });
+    }
+});
+app.post('/api/usuarios', requireLogin, async (req, res) => {
+    try {
+        const { name, role, password } = req.body;
+        if (!name || !role || !password) {
+            return res.status(400).json({ error: 'Nome, perfil e senha são obrigatórios.' });
+        }
+        const saltRounds = 10;
+        const password_hash = await bcrypt.hash(password, saltRounds);
+        const [newUserId] = await knex('users').insert({ name, role, password_hash });
+        const newUser = { id: newUserId, name, role };
+        res.status(201).json({ message: 'Utilizador registado com sucesso!', user: newUser });
+    } catch (error) {
+        console.error('Erro ao registar utilizador:', error);
+        res.status(500).json({ error: 'Ocorreu um erro interno.' });
+    }
+});
+app.put('/api/usuarios/:id', requireLogin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, role, password } = req.body;
+        const updatedData = { name, role };
+        if (password) {
+            const saltRounds = 10;
+            updatedData.password_hash = await bcrypt.hash(password, saltRounds);
+        }
+        const updatedCount = await knex('users').where({ id }).update(updatedData);
+        if (updatedCount > 0) {
+            res.json({ message: `Utilizador ${id} atualizado com sucesso!` });
+        } else {
+            res.status(404).json({ error: 'Utilizador não encontrado para atualização.' });
+        }
+    } catch (error) {
+        console.error('Erro ao editar utilizador:', error);
+        res.status(500).json({ error: 'Ocorreu um erro interno.' });
+    }
+});
+app.delete('/api/usuarios/:id', requireLogin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deletedCount = await knex('users').where({ id }).del();
+        if (deletedCount > 0) {
+            res.json({ message: `Utilizador ${id} removido com sucesso!` });
+        } else {
+            res.status(404).json({ error: 'Utilizador não encontrado para remoção.' });
+        }
+    } catch (error) {
+        console.error('Erro ao remover utilizador:', error);
+        res.status(500).json({ error: 'Ocorreu um erro interno.' });
+    }
+});
+
+
+// --- API para Pessoas ---
+app.get('/api/pessoas/:id', requireLogin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const person = await knex('people').where({ id }).first();
+        if (person) {
+            if (person.personal_references) {
+                person.personal_references = JSON.parse(person.personal_references);
+            }
+            res.json(person);
+        } else {
+            res.status(404).json({ error: 'Pessoa não encontrada.' });
+        }
+    } catch (error) {
+        console.error('Erro ao procurar pessoa:', error);
+        res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+});
+app.post('/api/pessoas', requireLogin, personDocumentUpload, async (req, res) => {
+    try {
+        const personData = req.body;
+        for (const key in personData) { if (personData[key] === '') { personData[key] = null; } }
+        if (req.files['cnh']) { personData.cnh_path = req.files['cnh'][0].path; }
+        if (req.files['comprovante_residencia']) { personData.residence_proof_path = req.files['comprovante_residencia'][0].path; }
+        if (req.files['comprovante_renda']) { personData.income_proof_path = req.files['comprovante_renda'][0].path; }
+        personData.personal_references = JSON.stringify([{ name: personData.ref_nome1, phone: personData.ref_telefone1 },{ name: personData.ref_nome2, phone: personData.ref_telefone2 }]);
+        delete personData.ref_nome1;
+        delete personData.ref_telefone1;
+        delete personData.ref_nome2;
+        delete personData.ref_telefone2;
+        const [newPersonId] = await knex('people').insert(personData);
+        res.status(201).json({ message: 'Pessoa registada com sucesso!', id: newPersonId });
+    } catch (error) {
+        console.error('Erro ao registar pessoa:', error);
+        if (error.code === 'SQLITE_CONSTRAINT') { return res.status(400).json({ error: `Falha ao registar: O valor para o campo ${error.message.split(': ')[2]} já existe.` }); }
+        res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+});
+app.put('/api/pessoas/:id', requireLogin, personDocumentUpload, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const personData = req.body;
+        for (const key in personData) { if (personData[key] === '') { personData[key] = null; } }
+        if (req.files['cnh']) { personData.cnh_path = req.files['cnh'][0].path; }
+        if (req.files['comprovante_residencia']) { personData.residence_proof_path = req.files['comprovante_residencia'][0].path; }
+        if (req.files['comprovante_renda']) { personData.income_proof_path = req.files['comprovante_renda'][0].path; }
+        personData.personal_references = JSON.stringify([{ name: personData.ref_nome1, phone: personData.ref_telefone1 }, { name: personData.ref_nome2, phone: personData.ref_telefone2 }]);
+        delete personData.ref_nome1;
+        delete personData.ref_telefone1;
+        delete personData.ref_nome2;
+        delete personData.ref_telefone2;
+        const updatedCount = await knex('people').where({ id }).update(personData);
+        if (updatedCount > 0) {
+            res.json({ message: 'Registo atualizado com sucesso!' });
+        } else {
+            res.status(404).json({ error: 'Pessoa não encontrada para atualização.' });
+        }
+    } catch (error) {
+        console.error('Erro ao editar pessoa:', error);
+        if (error.code === 'SQLITE_CONSTRAINT') { return res.status(400).json({ error: `Falha ao atualizar: O valor para o campo ${error.message.split(': ')[2]} já existe.` });}
+        res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+});
+app.delete('/api/pessoas/:id', requireLogin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deletedCount = await knex('people').where({ id }).del();
+        if (deletedCount > 0) {
+            res.json({ message: 'Pessoa removida com sucesso!' });
+        } else {
+            res.status(404).json({ error: 'Pessoa não encontrada para remoção.' });
+        }
+    } catch (error) {
+        console.error('Erro ao remover pessoa:', error);
+        res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+});
+
+
+// --- API para Veículos ---
+app.get('/api/veiculos/:id', requireLogin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const vehicle = await knex('vehicles').where({ id }).first();
+        if (vehicle) {
+            if (vehicle.opcionais) vehicle.opcionais = JSON.parse(vehicle.opcionais);
+            if (vehicle.fotos_paths) vehicle.fotos_paths = JSON.parse(vehicle.fotos_paths);
+            res.json(vehicle);
+        } else {
+            res.status(404).json({ error: 'Veículo não encontrado.' });
+        }
+    } catch (error) {
+        console.error('Erro ao procurar veículo:', error);
+        res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+});
+app.post('/api/veiculos', requireLogin, vehiclePhotoUpload, async (req, res) => {
+    try {
+        const vehicleData = req.body;
+        for (const key in vehicleData) { if (vehicleData[key] === '') { vehicleData[key] = null; } }
+        vehicleData.opcionais = JSON.stringify(req.body.opcionais || []);
+        if (req.files && req.files.length > 0) {
+            vehicleData.fotos_paths = JSON.stringify(req.files.map(file => file.path));
+        }
+        const [newVehicleId] = await knex('vehicles').insert(vehicleData);
+        res.status(201).json({ message: 'Veículo registado com sucesso!', id: newVehicleId });
+    } catch (error) {
+        console.error('Erro ao registar veículo:', error);
+        res.status(500).json({ error: 'Erro interno ao registar veículo.' });
+    }
+});
+app.put('/api/veiculos/:id', requireLogin, vehiclePhotoUpload, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const vehicleData = req.body;
+        for (const key in vehicleData) { if (vehicleData[key] === '') { vehicleData[key] = null; } }
+        vehicleData.opcionais = JSON.stringify(req.body.opcionais || []);
+        if (req.files && req.files.length > 0) {
+            vehicleData.fotos_paths = JSON.stringify(req.files.map(file => file.path));
+        }
+        const updatedCount = await knex('vehicles').where({ id }).update(vehicleData);
+        if (updatedCount > 0) {
+            res.json({ message: 'Veículo atualizado com sucesso!' });
+        } else {
+            res.status(404).json({ error: 'Veículo não encontrado para atualização.' });
+        }
+    } catch (error) {
+        console.error('Erro ao editar veículo:', error);
+        res.status(500).json({ error: 'Erro interno ao editar veículo.' });
+    }
+});
+app.delete('/api/veiculos/:id', requireLogin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deletedCount = await knex('vehicles').where({ id }).del();
+        if (deletedCount > 0) {
+            res.json({ message: 'Veículo removido com sucesso!' });
+        } else {
+            res.status(404).json({ error: 'Veículo não encontrado para remoção.' });
+        }
+    } catch (error) {
+        console.error('Erro ao remover veículo:', error);
+        res.status(500).json({ error: 'Erro interno ao remover veículo.' });
+    }
+});
+app.put('/api/veiculos/:id/status', requireLogin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        if (!status) return res.status(400).json({ error: 'O novo status é obrigatório.' });
+        const updatedCount = await knex('vehicles').where({ id }).update({ status: status });
+        if (updatedCount > 0) {
+            res.json({ message: 'Status atualizado com sucesso!' });
+        } else {
+            res.status(404).json({ error: 'Veículo não encontrado.' });
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar status do veículo:', error);
+        res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+});
+
+// Adicionar na Secção 7 - ROTAS DA API REST
+// --- API para Mensagens ---
+app.get('/api/mensagens', requireLogin, async (req, res) => {
+    try {
+        const messages = await knex('messages').select('*').orderBy('created_at', 'desc');
+        // Converte o campo de detalhes de JSON para objeto
+        messages.forEach(msg => {
+            if (msg.details) msg.details = JSON.parse(msg.details);
+        });
+        res.json(messages);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao procurar mensagens.' });
+    }
+});
+
+app.put('/api/mensagens/:id/read', requireLogin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { read } = req.body;
+        const updatedCount = await knex('messages').where({ id }).update({ read: read });
+        if (updatedCount > 0) {
+            res.json({ message: 'Status da mensagem atualizado.' });
+        } else {
+            res.status(404).json({ error: 'Mensagem não encontrada.' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao atualizar status da mensagem.' });
+    }
+});
+
+app.delete('/api/mensagens/:id', requireLogin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deletedCount = await knex('messages').where({ id }).del();
+        if (deletedCount > 0) {
+            res.json({ message: 'Mensagem removida com sucesso.' });
+        } else {
+            res.status(404).json({ error: 'Mensagem não encontrada.' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao remover mensagem.' });
+    }
+});
+
+// =========================================================================
+// 8. INICIAR O SERVIDOR
+// =========================================================================
+app.listen(port, () => {
+    console.log(`Servidor a correr na porta ${port}. Aceda a http://localhost:${port}`);
+});

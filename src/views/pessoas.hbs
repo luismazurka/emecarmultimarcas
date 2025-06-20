@@ -1,0 +1,192 @@
+<!-- HEADER -->
+<div class="header-container">
+    <h1>Gestão de Pessoas</h1>
+    <div class="header-actions">
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="search-box" placeholder="Buscar por nome, CPF ou cidade...">
+        </div>
+        <button id="btn-cadastrar-pessoa" class="btn btn-primary">Cadastrar Pessoa</button>
+    </div>
+</div>
+
+<!-- TABELA DE PESSOAS -->
+<div class="table-container">
+    <table class="user-table">
+        <thead>
+            <tr>
+                <th>Nome Completo</th>
+                <th>CPF</th>
+                <th>Cidade</th>
+                <th>Celular</th>
+                <th class="actions-header">Ações</th>
+            </tr>
+        </thead>
+        <tbody id="people-table-body">
+            {{#each people}}
+            <tr data-id="{{this.id}}">
+                <td>{{this.name}}</td>
+                <td>{{this.cpf}}</td>
+                <td>{{this.city}}</td>
+                <td>{{this.cell_phone}}</td>
+                <td class="action-buttons">
+                    <button class="btn-action btn-view" title="Visualizar"><i class="fas fa-eye"></i></button>
+                    <button class="btn-action btn-edit" title="Editar"><i class="fas fa-edit"></i></button>
+                    <button class="btn-action btn-delete" title="Remover"><i class="fas fa-trash-alt"></i></button>
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>
+
+<!-- ================================================================= -->
+<!-- MODAIS                                                          -->
+<!-- ================================================================= -->
+
+<!-- MODAL DE CADASTRO/EDIÇÃO COM ABAS -->
+<div id="modal-pessoa" class="modal-overlay hidden">
+    <div class="modal-content modal-lg">
+        <h2 id="modal-pessoa-title">Cadastrar Nova Pessoa</h2>
+        <!-- O 'enctype' é crucial para uploads de arquivo -->
+        <form id="pessoa-form" enctype="multipart/form-data">
+            <!-- NAVEGAÇÃO DAS ABAS (Adicionada a aba Documentos) -->
+            <div class="tab-navigation">
+                <button type="button" class="tab-link active" data-tab="pessoais">Dados Pessoais</button>
+                <button type="button" class="tab-link" data-tab="profissionais">Profissionais</button>
+                <button type="button" class="tab-link" data-tab="bancarios">Bancários</button>
+                <button type="button" class="tab-link" data-tab="referencias">Referências</button>
+                <button type="button" class="tab-link" data-tab="documentos">Documentos</button> <!-- NOVA ABA -->
+                <button type="button" class="tab-link" data-tab="outros">Outros</button>
+            </div>
+
+            <!-- CONTEÚDO DAS ABAS -->
+            <div class="tab-content-wrapper">
+                <!-- Aba 1: Dados Pessoais -->
+                <div id="pessoais" class="tab-content active">
+                    <div class="form-grid">
+                        <div class="form-group grid-col-2"><label for="name">Nome Completo</label><input type="text" id="name" name="name" required></div>
+                        <div class="form-group"><label for="cpf">CPF</label><input type="text" id="cpf" name="cpf"></div>
+                        <div class="form-group"><label for="rg">RG</label><input type="text" id="rg" name="rg"></div>
+                        <div class="form-group"><label for="birth_date">Data de Nasc.</label><input type="date" id="birth_date" name="birth_date"></div>
+                        <div class="form-group"><label for="gender">Sexo</label><select id="gender" name="gender"><option value="">Selecione</option><option value="Masculino">Masculino</option><option value="Feminino">Feminino</option></select></div>
+                        <div class="form-group grid-col-2"><label for="mother_name">Nome da Mãe</label><input type="text" id="mother_name" name="mother_name"></div>
+                        <div class="form-group grid-col-2"><label for="father_name">Nome do Pai</label><input type="text" id="father_name" name="father_name"></div>
+                        <div class="form-group"><label for="nationality">Naturalidade</label><input type="text" id="nationality" name="nationality"></div>
+                        <div class="form-group"><label for="civil_status">Estado Civil</label><select id="civil_status" name="civil_status"><option value="">Selecione</option><option value="Solteiro(a)">Solteiro(a)</option><option value="Casado(a)">Casado(a)</option><option value="Divorciado(a)">Divorciado(a)</option><option value="Viúvo(a)">Viúvo(a)</option></select></div>
+                        <div class="form-group"><label for="email">Email</label><input type="email" id="email" name="email"></div>
+                        <div class="form-group"><label for="phone">Telefone Fixo</label><input type="text" id="phone" name="phone"></div>
+                        <div class="form-group"><label for="cell_phone">Celular</label><input type="text" id="cell_phone" name="cell_phone"></div>
+                        <div class="form-group"><label for="zip_code">CEP</label><input type="text" id="zip_code" name="zip_code"></div>
+                        <div class="form-group grid-col-2"><label for="address">Endereço</label><input type="text" id="address" name="address"></div>
+                        <div class="form-group"><label for="address_number">Número</label><input type="text" id="address_number" name="address_number"></div>
+                        <div class="form-group"><label for="address_complement">Complemento</label><input type="text" id="address_complement" name="address_complement"></div>
+                        <div class="form-group"><label for="neighborhood">Bairro</label><input type="text" id="neighborhood" name="neighborhood"></div>
+                        <div class="form-group"><label for="city">Cidade</label><input type="text" id="city" name="city"></div>
+                        <div class="form-group"><label for="state">Estado</label><input type="text" id="state" name="state"></div>
+                        <div class="form-group"><label for="residence_time">Tempo de Residência</label><input type="text" id="residence_time" name="residence_time"></div>
+                    </div>
+                </div>
+                
+                <!-- Aba 2: Dados Profissionais -->
+                <div id="profissionais" class="tab-content">
+                    <div class="form-grid">
+                        <div class="form-group grid-col-2"><label for="company_name">Empresa</label><input type="text" id="company_name" name="company_name"></div>
+                        <div class="form-group grid-col-2"><label for="company_cnpj">CNPJ</label><input type="text" id="company_cnpj" name="company_cnpj"></div>
+                        <div class="form-group grid-col-2"><label for="position">Cargo</label><input type="text" id="position" name="position"></div>
+                        <div class="form-group"><label for="income">Renda (R$)</label><input type="text" id="income" name="income"></div>
+                        <div class="form-group"><label for="employment_time">Tempo de Emprego</label><input type="text" id="employment_time" name="employment_time"></div>
+                        <div class="form-group grid-col-3"><label for="company_address">Endereço da Empresa</label><input type="text" id="company_address" name="company_address"></div>
+                        <div class="form-group"><label for="company_phone">Telefone da Empresa</label><input type="text" id="company_phone" name="company_phone"></div>
+                    </div>
+                </div>
+
+                <!-- Aba 3: Dados Bancários -->
+                <div id="bancarios" class="tab-content">
+                     <div class="form-grid">
+                        <div class="form-group grid-col-2"><label for="bank_name">Banco</label><input type="text" id="bank_name" name="bank_name"></div>
+                        <div class="form-group"><label for="bank_agency">Agência</label><input type="text" id="bank_agency" name="bank_agency"></div>
+                        <div class="form-group"><label for="bank_account">Conta</label><input type="text" id="bank_account" name="bank_account"></div>
+                        <div class="form-group grid-col-4"><label for="bank_account_time">Tempo de Conta</label><input type="text" id="bank_account_time" name="bank_account_time"></div>
+                    </div>
+                </div>
+
+                <!-- Aba 4: Referências Pessoais -->
+                <div id="referencias" class="tab-content">
+                    <p class="form-subtitle">Primeira Referência</p>
+                    <div class="form-grid">
+                        <div class="form-group grid-col-2"><label for="ref_nome1">Nome</label><input type="text" id="ref_nome1" name="ref_nome1"></div>
+                        <div class="form-group grid-col-2"><label for="ref_telefone1">Telefone</label><input type="text" id="ref_telefone1" name="ref_telefone1"></div>
+                    </div>
+                     <p class="form-subtitle">Segunda Referência</p>
+                    <div class="form-grid">
+                        <div class="form-group grid-col-2"><label for="ref_nome2">Nome</label><input type="text" id="ref_nome2" name="ref_nome2"></div>
+                        <div class="form-group grid-col-2"><label for="ref_telefone2">Telefone</label><input type="text" id="ref_telefone2" name="ref_telefone2"></div>
+                    </div>
+                </div>
+                
+                <!-- Aba 5: Documentos (NOVA) -->
+                <div id="documentos" class="tab-content">
+                    <p class="form-subtitle">Anexe as imagens dos documentos</p>
+                    <div class="form-grid">
+                        <div class="form-group grid-col-4">
+                            <label for="cnh">CNH</label>
+                            <input type="file" id="cnh" name="cnh" class="file-input">
+                        </div>
+                        <div class="form-group grid-col-4">
+                            <label for="comprovante_residencia">Comprovante de Residência</label>
+                            <input type="file" id="comprovante_residencia" name="comprovante_residencia" class="file-input">
+                        </div>
+                        <div class="form-group grid-col-4">
+                            <label for="comprovante_renda">Comprovante de Renda</label>
+                            <input type="file" id="comprovante_renda" name="comprovante_renda" class="file-input">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aba 6: Outros -->
+                <div id="outros" class="tab-content">
+                    <div class="form-group">
+                        <label>Informações Adicionais</label>
+                        <textarea name="additional_info" rows="8" style="width: 100%;"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" data-close-modal>Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar Cadastro</button>
+            </div>
+            </div>
+
+            
+        </form>
+    </div>
+</div>
+
+<!-- MODAL DE VISUALIZAÇÃO -->
+<div id="modal-visualizacao" class="modal-overlay hidden">
+    <div class="modal-content modal-lg">
+        <h2 id="view-person-name">Detalhes do Cadastro</h2>
+        <div id="view-details-content">
+            <!-- Conteúdo será preenchido pelo JavaScript -->
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" data-close-modal>Fechar</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- MODAL DE CONFIRMAÇÃO PARA REMOVER -->
+<div id="modal-remocao" class="modal-overlay hidden">
+    <div class="modal-content">
+        <h2>Confirmar Remoção</h2>
+        <p>Você tem certeza que deseja remover o cadastro de <strong id="delete-person-name"></strong>? Esta ação não pode ser desfeita.</p>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" data-close-modal>Cancelar</button>
+            <button type="button" id="btn-confirmar-remocao" class="btn btn-danger">Sim, remover</button>
+        </div>
+    </div>
+</div>
+

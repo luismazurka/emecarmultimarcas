@@ -1,0 +1,83 @@
+<div class="header-container">
+    <h1>Gestão de Usuários</h1>
+    <button id="btn-cadastrar" class="btn btn-primary">Cadastrar Novo Usuário</button>
+</div>
+
+<div class="table-container">
+    <table class="user-table">
+        <thead>
+            <tr>
+                <th>Nome do Usuário</th>
+                <th>Perfil</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each users}}
+            <tr data-id="{{this.id}}"> 
+                <td>{{this.name}}</td>
+                <td><span class="perfil-tag perfil-{{this.role_class}}">{{this.role}}</span></td>
+                <td class="action-buttons">
+                    <button class="btn-action btn-view" title="Visualizar"><i class="fas fa-eye"></i></button>
+                    <button class="btn-action btn-edit" title="Editar"><i class="fas fa-edit"></i></button>
+                    <button class="btn-action btn-delete" title="Remover"><i class="fas fa-trash-alt"></i></button>
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>
+
+<div id="modal-cadastro-edicao" class="modal-overlay hidden">
+    <div class="modal-content">
+        <h2 id="modal-title">Cadastrar Novo Usuário</h2>
+        <form id="user-form">
+            <div class="form-group">
+                <label for="user-name">Nome</label>
+                <input type="text" id="user-name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="user-role">Perfil</label>
+                <select id="user-role" name="role" required>
+                    <option value="administrador">Administrador</option>
+                    <option value="gerente">Gerente</option>
+                    <option value="vendedor">Vendedor</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="user-password">Senha</label>
+                <input type="password" id="user-password" name="password" required>
+                <small>A senha é obrigatória para novos cadastros.</small>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" data-close-modal>Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modal-visualizacao" class="modal-overlay hidden">
+    <div class="modal-content">
+        <h2>Detalhes do Usuário</h2>
+        <div class="view-details">
+            <p><strong>Nome:</strong> <span id="view-name"></span></p>
+            <p><strong>Perfil:</strong> <span id="view-role"></span></p>
+            <p><strong>Data de Cadastro:</strong> <span id="view-date"></span></p>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" data-close-modal>Fechar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-remocao" class="modal-overlay hidden">
+    <div class="modal-content">
+        <h2>Confirmar Remoção</h2>
+        <p>Você tem certeza que deseja remover o usuário <strong id="delete-user-name"></strong>? Esta ação não pode ser desfeita.</p>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" data-close-modal>Cancelar</button>
+            <button type="button" id="btn-confirmar-remocao" class="btn btn-danger">Sim, remover</button>
+        </div>
+    </div>
+</div>

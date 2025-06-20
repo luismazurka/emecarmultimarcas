@@ -1,0 +1,104 @@
+<div class="header-container">
+    <h1>Dashboard de Indicadores</h1>
+</div>
+
+<div class="tabs">
+    <button class="tab-button active" data-tab="visao">Visão Geral</button>
+    <button class="tab-button" data-tab="status">Distribuição</button>
+    <button class="tab-button" data-tab="tempo">Tempo Médio</button>
+    <button class="tab-button" data-tab="mensal">Entradas e Saídas</button>
+    <button class="tab-button" data-tab="permanencia">Longa Permanência</button>
+</div>
+
+<!-- Aba 1: Visão Geral -->
+<div class="tab-content active" id="visao">
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <h3>Total de Veículos</h3>
+            <p>{{indicators.kpis.totalVeiculos}}</p>
+        </div>
+        <div class="kpi-card">
+            <h3>Tempo Médio em Stock</h3>
+            <p>{{indicators.kpis.tempoMedioEstoque}} dias</p>
+        </div>
+        <div class="kpi-card">
+            <h3>Maior Permanência</h3>
+            <p>{{indicators.kpis.maiorPermanencia}} dias</p>
+        </div>
+    </div>
+</div>
+
+<!-- Aba 2: Distribuição por Status -->
+<div class="tab-content" id="status">
+    <div class="card-indicador">
+        <h2>Distribuição de Veículos por Status</h2>
+        <div class="status-list-container">
+            {{#each indicators.distribuicao}}
+            <div class="status-item">
+                <div class="status-item-info">{{this.label}} <span class="count">({{this.count}} veículos)</span></div>
+                <div class="progress-bar-bg">
+                    <!-- CORRIGIDO: Usa o valor de percentagem pré-calculado -->
+                    <div class="progress-bar" style="width: {{this.percentage}}%;"></div>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+</div>
+
+<!-- Aba 3: Tempo Médio -->
+<div class="tab-content" id="tempo">
+    <div class="card-indicador">
+        <h2>Tempo Médio por Etapa (Dias)</h2>
+        <div class="bar-chart-container">
+            {{#each indicators.tempoMedio}}
+            <div class="bar-row">
+                <div class="bar-label">{{this.label}}</div>
+                <div class="bar-wrapper">
+                    <!-- CORRIGIDO: Usa o valor de percentagem pré-calculado -->
+                    <div class="bar" style="width: {{this.percentage}}%;"></div>
+                </div>
+                <div class="bar-value">{{this.dias}}d</div>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+</div>
+
+<!-- Aba 4: Entradas e Saídas (Simulado) -->
+<div class="tab-content" id="mensal">
+    <div class="card-indicador">
+        <h2>Entradas e Saídas Mensais (Simulado)</h2>
+        <table class="user-table">
+            <thead><tr><th>Mês</th><th>Entradas</th><th>Saídas</th></tr></thead>
+            <tbody>
+                {{#each indicators.mensal.labels}}
+                <tr>
+                    <td>{{this}}</td>
+                    <td>{{lookup ../indicators.mensal.entradas @index}}</td>
+                    <td>{{lookup ../indicators.mensal.saidas @index}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Aba 5: Longa Permanência -->
+<div class="tab-content" id="permanencia">
+    <div class="card-indicador">
+        <h2>Veículos com Longa Permanência</h2>
+        <table class="user-table">
+            <thead><tr><th>Veículo</th><th>Status</th><th>Dias na Etapa</th></tr></thead>
+            <tbody>
+                {{#each indicators.longaPermanencia}}
+                <tr>
+                    <td>{{this.marca}} {{this.modelo}}</td>
+                    <td>{{this.status}}</td>
+                    <td>{{this.dias}} dias</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+</div>

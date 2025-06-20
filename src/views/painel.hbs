@@ -1,0 +1,32 @@
+<div class="header-container">
+    <h1>Painel de Status dos Veículos</h1>
+    <div class="header-actions">
+        <div class="search-container">
+             <i class="fas fa-search search-icon"></i>
+            <input type="text" id="kanbanSearchInput" class="kanban-search" placeholder="Procurar por marca, modelo, matrícula...">
+        </div>
+    </div>
+</div>
+
+<div class="kanban-container">
+    <div class="kanban-board">
+        {{#each statuses}}
+            <div class="kanban-column" data-status="{{this}}">
+                <h2 class="kanban-column-header">
+                    {{this}}
+                    <span class="count">{{lookup ../vehiclesByStatus this.length}}</span>
+                </h2>
+                <div class="kanban-list">
+                    {{#each (lookup ../vehiclesByStatus this)}}
+                        <div class="kanban-card" draggable="true" data-id="{{this.id}}">
+                            <strong>{{this.marca}} {{this.modelo}}</strong>
+                            <div class="card-details">
+                                <span>{{this.ano_fab}}/{{this.ano_modelo}}</span> | <span>{{this.placa}}</span>
+                            </div>
+                        </div>
+                    {{/each}}
+                </div>
+            </div>
+        {{/each}}
+    </div>
+</div>
