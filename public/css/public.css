@@ -575,3 +575,108 @@ section {
         grid-template-columns: 1fr; /* Em telas menores, volta para 1 coluna */
     }
 }
+
+/* =========================================
+ * ESTILOS DA PÁGINA "FALE CONOSCO"
+ * =========================================
+ */
+.contact-container {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 3rem;
+    background-color: var(--cor-superficie-escura);
+    padding: 2rem;
+    border-radius: var(--raio-borda);
+}
+
+.form-column h2, .info-column h2 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    color: var(--cor-primaria);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--cor-texto-secundario);
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 0.8rem;
+    background-color: var(--cor-fundo-escuro);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda);
+    color: var(--cor-texto-claro);
+    font-size: 1rem;
+    font-family: var(--fonte-principal);
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: var(--cor-primaria);
+    border: none;
+    border-radius: var(--raio-borda);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-submit:hover:not(:disabled) {
+    background-color: var(--cor-primaria-hover);
+}
+.btn-submit:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+.success-message {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #15883e;
+    color: #fff;
+    border-radius: var(--raio-borda);
+    text-align: center;
+}
+
+.info-block {
+    margin-bottom: 2rem;
+}
+.info-block h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+.info-block p {
+    line-height: 1.6;
+    color: var(--cor-texto-secundario);
+    padding-left: 2rem; /* Alinha com o texto do título */
+}
+
+.map-wrapper {
+    width: 100%;
+    height: 300px;
+    border-radius: var(--raio-borda);
+    overflow: hidden;
+}
+.map-wrapper iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+@media (max-width: 992px) {
+    .contact-container {
+        grid-template-columns: 1fr;
+    }
+}

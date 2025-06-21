@@ -172,6 +172,15 @@ app.get('/quem-somos', (req, res) => {
   });
 });
 
+// Em server.js, na seção de ROTAS PÚBLICAS
+
+app.get('/fale-conosco', (req, res) => {
+  res.render('fale-conosco', { 
+    title: 'Fale Conosco',
+    layout: 'public_layout' 
+  });
+});
+
 // =========================================================================
 // 6. ROTAS PROTEGIDAS - RENDERIZAÇÃO DE PÁGINAS
 // =========================================================================
@@ -648,6 +657,36 @@ app.delete('/api/mensagens/:id', requireLogin, async (req, res) => {
         }
     } catch (error) {
         res.status(500).json({ error: 'Erro ao remover mensagem.' });
+    }
+});
+
+// Em server.js, junto com as outras rotas de API
+
+app.post('/api/mensagens/contato', async (req, res) => {
+    try {
+        const { name, email, phone, message } = req.body;
+
+        // Validação simples
+        if (!name || !email || !message) {
+            return res.status(400).json({ error: 'Nome, e-mail e mensagem são obrigatórios.' });
+        }
+
+        const novaMensagem = {
+            name,
+            email,
+            phone,
+            message,
+            origin: 'contato', // Define a origem para o filtro funcionar no painel
+            read: false
+        };
+
+        await knex('messages').insert(novaMensagem);
+
+        res.status(201).json({ message: 'Mensagem recebida com sucesso!' });
+
+    } catch (error) {
+        console.error('Erro ao salvar mensagem de contato:', error);
+        res.status(500).json({ error: 'Ocorreu um erro no servidor.' });
     }
 });
 
