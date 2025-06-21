@@ -165,6 +165,13 @@ app.get('/logout', (req, res) => {
     });
 });
 
+app.get('/quem-somos', (req, res) => {
+  res.render('quem-somos', { 
+    title: 'Quem Somos',
+    layout: 'public_layout' 
+  });
+});
+
 // =========================================================================
 // 6. ROTAS PROTEGIDAS - RENDERIZAÇÃO DE PÁGINAS
 // =========================================================================
