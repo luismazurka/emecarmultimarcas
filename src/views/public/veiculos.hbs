@@ -1,0 +1,85 @@
+{{!-- src/views/public/veiculos.hbs --}}
+<div class="page-layout">
+
+    {{!-- BARRA DE FILTROS LATERAL --}}
+    <aside class="filter-sidebar">
+        <div class="filter-header">
+            <h3><i class="ri-filter-3-line"></i> Filtros</h3>
+        </div>
+        <form id="filter-form">
+            <div class="filter-group">
+                <h4>Marca</h4>
+                <div class="checkbox-list">
+                    <label><input type="checkbox" name="marca" value="fiat"> Fiat</label>
+                    <label><input type="checkbox" name="marca" value="chevrolet"> Chevrolet</label>
+                    <label><input type="checkbox" name="marca" value="volkswagen"> Volkswagen</label>
+                    {{!-- Marcas podem ser carregadas dinamicamente no futuro --}}
+                </div>
+            </div>
+             <div class="filter-group">
+                <h4>Faixa de Preço</h4>
+                <div class="price-range">
+                    <input type="number" name="preco_min" placeholder="Mínimo">
+                    <span>-</span>
+                    <input type="number" name="preco_max" placeholder="Máximo">
+                </div>
+            </div>
+            <div class="filter-group">
+                <h4>Ano do Modelo</h4>
+                 <div class="price-range">
+                    <input type="number" name="ano_min" placeholder="De">
+                    <span>-</span>
+                    <input type="number" name="ano_max" placeholder="Até">
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button type="submit" id="btn-apply" class="btn-apply-filters" disabled>Aplicar Filtros</button>
+                <button type="reset" id="btn-clear" class="btn-clear-filters">Limpar Filtros</button>
+            </div>
+        </form>
+    </aside>
+
+    {{!-- CONTEÚDO PRINCIPAL (LISTA DE VEÍCULOS) --}}
+    <main class="vehicle-list-content">
+        <div class="results-header">
+            <span id="results-count">Exibindo {{veiculos.length}} veículos</span>
+            <div class="sort-options">
+                <label for="sort-by">Ordenar por:</label>
+                <select id="sort-by" name="sort-by">
+    <option value="recentes" {{#if (eq sortBy 'recentes')}}selected{{/if}}>Mais Recentes</option>
+    <option value="preco-menor" {{#if (eq sortBy 'preco-menor')}}selected{{/if}}>Menor Preço</option>
+    <option value="preco-maior" {{#if (eq sortBy 'preco-maior')}}selected{{/if}}>Maior Preço</option>
+</select>
+            </div>
+        </div>
+
+        <div class="vehicle-grid">
+            {{#each veiculos}}
+                <div class="vehicle-card">
+                    <div class="card-image">
+                        {{#if this.fotos_paths.[0]}}
+                            <img src="/uploads/{{this.fotos_paths.[0]}}" alt="{{this.marca}} {{this.modelo}}">
+                        {{else}}
+                             <img src="/images/sem-foto.png" alt="Sem foto disponível">
+                        {{/if}}
+                    </div>
+                    <div class="card-content">
+                        <h4>{{this.marca}} {{this.modelo}}</h4>
+                        <p class="card-details">{{this.ano_modelo}} | {{this.km}} km</p>
+                        <p class="card-price">R$ {{this.valor_venda}}</p>
+                        <a href="/veiculo/{{this.id}}" class="btn-card">Ver Detalhes</a>
+                    </div>
+                </div>
+            {{else}}
+                <p>Nenhum veículo encontrado com os filtros selecionados.</p>
+            {{/each}}
+        </div>
+    </main>
+
+</div>
+
+{{!-- BOTÃO VOLTAR AO TOPO --}}
+<button id="btn-back-to-top" class="btn-back-to-top" title="Voltar ao topo"><i class="ri-arrow-up-s-line"></i></button>
+
+{{!-- SCRIPT DA PÁGINA (FILTROS E SCROLL) --}}
+<script src="/js/veiculos-public.js"></script>

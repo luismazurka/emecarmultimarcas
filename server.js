@@ -66,7 +66,10 @@ const requireLogin = (req, res, next) => {
 // =========================================================================
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'src/views'));
-
+// Helper para o Handlebars comparar valores
+hbs.registerHelper('eq', function (a, b) {
+    return a === b;
+});
 
 // =========================================================================
 // 5. ROTAS PÚBLICAS (NÃO PRECISAM DE LOGIN)
@@ -181,6 +184,65 @@ app.get('/fale-conosco', (req, res) => {
   });
 });
 
+// Em server.js
+
+// Em server.js, substitua a rota GET /veiculos existente por esta
+
+app.get('/veiculos', async (req, res, next) => {
+    try {
+        // --- LÓGICA DE ORDENAÇÃO ---
+        const sortBy = req.query.sort || 'recentes'; // Pega o valor da URL, ou usa 'recentes' como padrão
+        let orderByColumn = 'created_at';
+        let orderDirection = 'desc';
+
+        switch (sortBy) {
+            case 'preco-menor':
+                orderByColumn = 'valor_venda';
+                orderDirection = 'asc';
+                break;
+            case 'preco-maior':
+                orderByColumn = 'valor_venda';
+                orderDirection = 'desc';
+                break;
+            // O caso 'recentes' já é o padrão
+        }
+
+        // Busca os veículos no banco JÁ COM A ORDEM CORRETA
+        const veiculosDb = await knex('vehicles')
+            .where('exibir_site', true)
+            .orderBy(orderByColumn, orderDirection); // Usa as variáveis de ordenação
+            //.debug(true); // <--- ADICIONE ESTA LINHA PARA DEPURAR
+
+        // (A função parseVeiculos continua a mesma)
+        const parseVeiculos = (veiculos) => {
+            return veiculos.map(vehicle => {
+                let fotosArray = [];
+                if (vehicle.fotos_paths && typeof vehicle.fotos_paths === 'string') {
+                    try {
+                        fotosArray = JSON.parse(vehicle.fotos_paths);
+                    } catch (e) { fotosArray = []; }
+                } else if (Array.isArray(vehicle.fotos_paths)) {
+                    fotosArray = vehicle.fotos_paths;
+                }
+                return { ...vehicle, fotos_paths: fotosArray };
+            });
+        };
+
+        const veiculos = parseVeiculos(veiculosDb);
+        
+        res.render('public/veiculos', {
+            title: 'Nosso Estoque',
+            layout: 'public_layout',
+            veiculos,
+            sortBy: sortBy // Envia a opção de ordenação de volta para a view
+        });
+
+    } catch (error) {
+        console.error('Erro ao buscar veículos:', error);
+        next(error);
+    }
+});
+
 // =========================================================================
 // 6. ROTAS PROTEGIDAS - RENDERIZAÇÃO DE PÁGINAS
 // =========================================================================
@@ -247,10 +309,10 @@ app.get('/pessoas', requireLogin, async (req, res) => {
     }
 });
 
-app.get('/veiculos', requireLogin, async (req, res) => {
+app.get('/admin/veiculos', requireLogin, async (req, res) => {
     try {
         const vehicles = await knex('vehicles').select('*').orderBy('marca', 'modelo');
-        res.render('veiculos', {
+        res.render('admin/veiculos', {
             pageTitle: 'Veículos',
             userName: req.session.userName,
             isVeiculosPage: true,

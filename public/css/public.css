@@ -31,7 +31,7 @@ main {
     max-width: 1400px;
     margin: auto;
     padding: 1rem;
-    padding-top: 145px; /* Adiciona o espaço para o header fixo */
+    padding-top: 90px; /* Adiciona o espaço para o header fixo */
 }
 
 a {
@@ -679,4 +679,153 @@ section {
     .contact-container {
         grid-template-columns: 1fr;
     }
+}
+
+/* =========================================
+ * ESTILOS DA PÁGINA DE LISTAGEM DE VEÍCULOS
+ * =========================================
+ */
+.page-layout {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.filter-sidebar {
+    width: 250px;
+    background-color: var(--cor-superficie-escura);
+    padding: 1.5rem;
+    border-radius: var(--raio-borda);
+    position: sticky;
+    top: 165px; /* Altura do header + um espaçamento */
+}
+
+.filter-header h3 {
+    font-size: 1.5rem;
+    color: var(--cor-primaria);
+    margin: 0 0 1.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-group {
+    margin-bottom: 2rem;
+}
+
+.filter-group h4 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--cor-borda);
+    padding-bottom: 0.5rem;
+}
+
+.checkbox-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.checkbox-list label {
+    cursor: pointer;
+}
+
+.price-range {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.price-range input {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: var(--cor-fundo-escuro);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda);
+    color: var(--cor-texto-claro);
+    font-size: 0.9rem;
+}
+
+.filter-actions {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.btn-apply-filters, .btn-clear-filters {
+    padding: 0.8rem;
+    border: none;
+    border-radius: var(--raio-borda);
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-apply-filters {
+    background-color: var(--cor-primaria);
+    color: #fff;
+}
+.btn-apply-filters:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+.btn-clear-filters {
+    background-color: transparent;
+    color: var(--cor-texto-secundario);
+}
+.btn-clear-filters:hover {
+    color: #fff;
+}
+
+.vehicle-list-content {
+    flex: 1;
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: var(--cor-superficie-escura);
+    border-radius: var(--raio-borda);
+    margin-bottom: 2rem;
+}
+
+#results-count {
+    color: var(--cor-texto-secundario);
+}
+
+.sort-options select {
+    background-color: var(--cor-fundo-escuro);
+    color: var(--cor-texto-claro);
+    border: 1px solid var(--cor-borda);
+    padding: 0.5rem;
+    border-radius: var(--raio-borda);
+}
+
+/* O .vehicle-grid e .vehicle-card já devem existir no seu CSS. Se não, adicione-os. */
+
+.btn-back-to-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background-color: var(--cor-primaria);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: none; /* Começa escondido */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: opacity 0.3s, transform 0.3s;
+}
+.btn-back-to-top:hover {
+    background-color: var(--cor-primaria-hover);
+    transform: scale(1.1);
 }
