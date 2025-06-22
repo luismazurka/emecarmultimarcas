@@ -2,8 +2,7 @@
 <div class="vehicle-detail-container">
     <div class="vehicle-header">
         <div class="title-section">
-            <h1>{{veiculo.marca}} {{veiculo.modelo}}</h1>
-            <p class="version">{{veiculo.versao}}</p>
+            <h1>{{veiculo.marca}} {{veiculo.modelo}} {{veiculo.versao}} {{veiculo.ano_modelo}}</h1>
         </div>
         <div class="price-section">
             <div class="price">R$ {{veiculo.valor_venda}}</div>
@@ -44,12 +43,7 @@
         </div>
     </section>
 
-    <section class="vehicle-description">
-        <h3>Descrição</h3>
-        <div class="description-content" id="description-content">
-            <p>{{{veiculo.descricao}}}</p>
-        </div>
-    </section>
+    
 
     {{#if veiculo.opcionais.length}}
     <section class="features-section">
@@ -62,6 +56,13 @@
     </section>
     {{/if}}
 </div>
+
+<section class="vehicle-description">
+        <h3>Descrição</h3>
+        <div class="description-content" id="description-content">
+            <p>{{{veiculo.descricao}}}</p>
+        </div>
+    </section>
 
 {{!-- MODAL DA GALERIA (permanece igual) --}}
 <div id="gallery-modal" class="gallery-modal">

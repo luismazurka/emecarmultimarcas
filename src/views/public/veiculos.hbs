@@ -8,15 +8,6 @@
         </div>
         <form id="filter-form">
             <div class="filter-group">
-                <h4>Marca</h4>
-                <div class="checkbox-list">
-                    <label><input type="checkbox" name="marca" value="fiat"> Fiat</label>
-                    <label><input type="checkbox" name="marca" value="chevrolet"> Chevrolet</label>
-                    <label><input type="checkbox" name="marca" value="volkswagen"> Volkswagen</label>
-                    {{!-- Marcas podem ser carregadas dinamicamente no futuro --}}
-                </div>
-            </div>
-             <div class="filter-group">
                 <h4>Faixa de Preço</h4>
                 <div class="price-range">
                     <input type="number" name="preco_min" placeholder="Mínimo">
@@ -32,6 +23,40 @@
                     <input type="number" name="ano_max" placeholder="Até">
                 </div>
             </div>
+
+
+            <div class="filter-group">
+                <h4>Tipo</h4>
+                <div class="checkbox-list">
+                    {{!-- checkbox dos Tipos carregados dinamicamente --}}
+                </div>
+            </div>
+
+
+            <div class="filter-group">
+                <h4>Marca</h4>
+                <div class="checkbox-list">
+                    {{!-- checkbox das Marcas carregados dinamicamente --}}
+                </div>
+            </div>
+
+
+            <div class="filter-group">
+                <h4>Modelo</h4>
+                <div class="checkbox-list">
+                    {{!-- checkbox dos Modelos carregados dinamicamente --}}
+                </div>
+            </div>
+
+
+            <div class="filter-group">
+                <h4>Loja</h4>
+                <div class="checkbox-list">
+                    {{!-- checkbox das Lojas carregados dinamicamente --}}
+                </div>
+            </div>
+
+
             <div class="filter-actions">
                 <button type="submit" id="btn-apply" class="btn-apply-filters" disabled>Aplicar Filtros</button>
                 <button type="reset" id="btn-clear" class="btn-clear-filters">Limpar Filtros</button>
@@ -67,7 +92,7 @@
                         <h4>{{this.marca}} {{this.modelo}}</h4>
                         <p class="card-details">{{this.ano_modelo}} | {{this.km}} km</p>
                         <p class="card-price">R$ {{this.valor_venda}}</p>
-                        <a href="/veiculo/{{this.id}}" class="btn-card">Ver Detalhes</a>
+                        <a href="/veiculo/{{this.id}}" class="btn-card" target="_blank">Ver Detalhes</a>
                     </div>
                 </div>
             {{else}}

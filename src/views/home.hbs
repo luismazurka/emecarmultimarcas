@@ -7,7 +7,7 @@
                 <div class="slide-content">
                     <h1>{{this.marca}} {{this.modelo}} {{this.versao}}</h1>
                     <p></p>
-                    <a href="/veiculo/{{this.id}}" class="btn-slide">Ver Detalhes</a>
+                    <a href="/veiculo/{{this.id}}" class="btn-slide" target="_blank">Ver Detalhes</a>
                 </div>
             </div>
             {{/each}}
@@ -33,7 +33,7 @@
                 <h4>{{this.marca}} {{this.modelo}} {{this.versao}}</h4>
                 <p class="card-details">{{this.ano_modelo}} | {{this.km}} km</p>
                 <p class="card-price">R$ {{this.valor_venda}}</p>
-                <a href="/veiculo/{{this.id}}" class="btn-card">Ver Detalhes</a>
+                <a href="/veiculo/{{this.id}}" class="btn-card" target="_blank">Ver Detalhes</a>
             </div>
         </div>
         {{/each}}
