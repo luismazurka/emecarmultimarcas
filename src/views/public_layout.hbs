@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Emecar - {{title}}</title> 
     
-    <link rel="stylesheet" href="/css/public.css" />
-
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
-
+    <link rel="stylesheet" href="/css/public.css" /> <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 </head>
-<body class="public-site"> <header class="header">
+<body class="public-site">
+    <header class="header">
         <div class="header-top">
             <div class="header-container">
                 <div class="contatos-topo">
@@ -24,12 +22,12 @@
         <div class="header-main">
             <div class="header-container">
                 <a href="/" class="logo">
-                    <img src="img/logo.png" alt="Logo Emecar" />
+                    <img src="/img/logo.png" alt="Logo Emecar" />
                 </a>
                 <nav class="menu-principal">
-                    <a href="/">Início</a>
-                    <a href="/veiculos">Veículos</a>
-                    <a href="/quem-somos">Quem Somos</a>
+                    <a href="/" class="btn-destaque">Início</a>
+                    <a href="/veiculos" class="btn-destaque">Veículos</a>
+                    <a href="/quem-somos" class="btn-destaque">Quem Somos</a>
                     <a href="/fale-conosco" class="btn-destaque">Fale Conosco</a>
                 </nav>
             </div>
@@ -59,16 +57,19 @@
             <div class="footer-coluna">
                 <h4>Nossas Marcas</h4>
                 <div class="marcas-grid">
-                    <img src="img/logomultimarcas.png" alt="Emecar Multimarcas" />
-                    <img src="img/logopremium.png" alt="Emecar Premium" />
-                    <img src="img/logorepasses.png" alt="Coronel Repasses" />
-                    <img src="img/logoemecred.png" alt="Emecred" />
+                    {{!-- CORRIGIDO: Adicionando a barra / no início se as imagens fossem locais --}}
+                    {{!-- Ex: <img src="/images/logo-emecar.png" ... /> --}}
+                    {{!-- Como você está usando links do imgur, eles já são absolutos e não precisam de correção. --}}
+                    <img src="/img/logomultimarcas.png" alt="Emecar Multimarcas" />
+                    <img src="/img/logopremium.png" alt="Emecar Premium" />
+                    <img src="/img/logorepasses.png" alt="Coronel Repasses" />
+                    <img src="/img/logoemecred.png" alt="Emecred" />
                 </div>
             </div>
             <div class="redes-sociais">
-                <a href="#" class="icon" aria-label="Facebook"><img src="img/facebook.png" alt="Facebook"></a>
-                <a href="#" class="icon" aria-label="Instagram"><img src="img/instagram.png" alt="Instagram"></a>
-                <a href="#" class="icon" aria-label="WhatsApp"><img src="img/whatsapp.png" alt="WhatsApp"></a>
+                <a href="#" class="icon" aria-label="Facebook"><img src="/img/facebook.png" alt="Facebook"></a>
+                <a href="#" class="icon" aria-label="Instagram"><img src="/img/instagram.png" alt="Instagram"></a>
+                <a href="#" class="icon" aria-label="WhatsApp"><img src="/img/whatsapp.png" alt="WhatsApp"></a>
             </div>
         </div>
         <div class="links-legais">
@@ -77,13 +78,11 @@
             <a href="/login">Área Restrita</a>
         </div>
         <div class="footer-copy">
-            <p>© 2025 Emecar Multimarcas. Todos os direitos reservados.</p>
+            <p>© 2025 Emecar. Todos os direitos reservados.</p>
             <p>Desenvolvido por L&M</p>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    
-    <script src="/js/script.js"></script>
-</body>
+    <script src="/js/script.js"></script> </body>
 </html>

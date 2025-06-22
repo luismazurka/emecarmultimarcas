@@ -70,6 +70,10 @@ app.set('views', path.join(__dirname, 'src/views'));
 hbs.registerHelper('eq', function (a, b) {
     return a === b;
 });
+// No topo do server.js
+hbs.registerHelper('json', function(context) {
+    return JSON.stringify(context);
+});
 
 // =========================================================================
 // 5. ROTAS PÚBLICAS (NÃO PRECISAM DE LOGIN)
@@ -239,6 +243,39 @@ app.get('/veiculos', async (req, res, next) => {
 
     } catch (error) {
         console.error('Erro ao buscar veículos:', error);
+        next(error);
+    }
+});
+
+// Em server.js, na seção de ROTAS PÚBLICAS
+
+app.get('/veiculo/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const veiculo = await knex('vehicles').where({ id: id }).first();
+
+        if (!veiculo || !veiculo.exibir_site) {
+            // Se não encontrar o veículo ou ele não estiver marcado para exibir, mostra erro 404
+            return res.status(404).render('public/404', { title: 'Não Encontrado', layout: 'public_layout' });
+        }
+
+        // Converte os campos JSON de texto para arrays
+        veiculo.fotos_paths = veiculo.fotos_paths ? JSON.parse(veiculo.fotos_paths) : [];
+        veiculo.opcionais = veiculo.opcionais ? JSON.parse(veiculo.opcionais) : [];
+
+        // Limpa os caminhos das fotos com barras invertidas (para dados antigos)
+        if (veiculo.fotos_paths.length > 0) {
+            veiculo.fotos_paths = veiculo.fotos_paths.map(path => path.split(/[\\\/]/).pop());
+        }
+
+        res.render('public/veiculo', {
+            title: `${veiculo.marca} ${veiculo.modelo}`,
+            layout: 'public_layout',
+            veiculo
+        });
+        
+    } catch (error) {
+        console.error('Erro ao buscar detalhes do veículo:', error);
         next(error);
     }
 });

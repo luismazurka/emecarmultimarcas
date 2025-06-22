@@ -1,0 +1,78 @@
+{{!-- Arquivo: src/views/public/veiculo.hbs (versão revisada) --}}
+<div class="vehicle-detail-container">
+    <div class="vehicle-header">
+        <div class="title-section">
+            <h1>{{veiculo.marca}} {{veiculo.modelo}}</h1>
+            <p class="version">{{veiculo.versao}}</p>
+        </div>
+        <div class="price-section">
+            <div class="price">R$ {{veiculo.valor_venda}}</div>
+        </div>
+    </div>
+
+    <section class="photo-gallery">
+        <div class="main-photo">
+            {{#if veiculo.fotos_paths.[0]}}
+                <img id="main-image" src="/uploads/{{veiculo.fotos_paths.[0]}}" alt="Foto principal do {{veiculo.marca}} {{veiculo.modelo}}">
+                <div class="gallery-overlay"><i class="ri-zoom-in-line"></i> Ver Fotos</div>
+            {{else}}
+                <img id="main-image" src="/images/sem-foto.png" alt="Sem foto disponível">
+            {{/if}}
+        </div>
+        <div class="thumbnail-strip" id="thumbnail-strip">
+            {{#each veiculo.fotos_paths}}
+                <div class="thumbnail">
+                    <img src="/uploads/{{this}}" alt="Miniatura do veículo">
+                </div>
+            {{/each}}
+        </div>
+    </section>
+    
+    <div class="main-action-wrapper">
+        <button class="btn-main-action">Agendar Test-drive</button>
+    </div>
+
+    <section class="vehicle-specs">
+        <h3>Especificações</h3>
+        <div class="spec-grid">
+            <div class="spec-item"><span>Ano</span><b>{{veiculo.ano_fab}} / {{veiculo.ano_modelo}}</b></div>
+            <div class="spec-item"><span>KM</span><b>{{veiculo.km}}</b></div>
+            <div class="spec-item"><span>Câmbio</span><b>{{veiculo.cambio}}</b></div>
+            <div class="spec-item"><span>Combustível</span><b>{{veiculo.combustivel}}</b></div>
+            <div class="spec-item"><span>Cor</span><b>{{veiculo.cor}}</b></div>
+            <div class="spec-item"><span>Placa</span><b>Final {{veiculo.placa}}</b></div>
+        </div>
+    </section>
+
+    <section class="vehicle-description">
+        <h3>Descrição</h3>
+        <div class="description-content" id="description-content">
+            <p>{{{veiculo.descricao}}}</p>
+        </div>
+    </section>
+
+    {{#if veiculo.opcionais.length}}
+    <section class="features-section">
+        <h3>Opcionais</h3>
+        <div class="features-grid">
+            {{#each veiculo.opcionais}}
+                <div class="feature-item"><i class="ri-check-line"></i> {{this}}</div>
+            {{/each}}
+        </div>
+    </section>
+    {{/if}}
+</div>
+
+{{!-- MODAL DA GALERIA (permanece igual) --}}
+<div id="gallery-modal" class="gallery-modal">
+    <span class="gallery-close-btn" id="close-gallery">&times;</span>
+    <button class="gallery-nav-btn prev" id="prev-photo"><i class="ri-arrow-left-s-line"></i></button>
+    <img class="gallery-modal-content" id="gallery-main-photo">
+    <button class="gallery-nav-btn next" id="next-photo"><i class="ri-arrow-right-s-line"></i></button>
+</div>
+
+{{!-- SCRIPT DA PÁGINA (permanece igual) --}}
+<script>
+    const allImageSources = {{{json veiculo.fotos_paths}}};
+</script>
+<script src="/js/veiculo-public.js"></script>

@@ -5,8 +5,8 @@
             {{#each destaques}}
             <div class="swiper-slide" style="background-image: url('/uploads/{{this.fotos_paths.[0]}}');">
                 <div class="slide-content">
-                    <h1>{{this.marca}} {{this.modelo}}</h1>
-                    <p>{{this.ano}}  R$ {{this.valor_venda}}</p>
+                    <h1>{{this.marca}} {{this.modelo}} {{this.versao}}</h1>
+                    <p></p>
                     <a href="/veiculo/{{this.id}}" class="btn-slide">Ver Detalhes</a>
                 </div>
             </div>
@@ -21,17 +21,16 @@
 {{!-- Seção de Veículos Recentes --}}
 <section class="vehicle-grid-section">
     <div class="section-title">
-        <h2>Veículos Recentes</h2>
-        <p>Confira as novidades em nosso estoque</p>
+        <p>Confira as novidades em nosso estoque:</p>
     </div>
     <div class="vehicle-grid">
         {{#each recentes}}
         <div class="vehicle-card">
             <div class="card-image">
-    <img src="/uploads/{{this.fotos_paths.[0]}}" alt="{{this.marca}} {{this.modelo}}">
+    <img src="/uploads/{{this.fotos_paths.[0]}}" alt="{{this.marca}} {{this.modelo}} {{this.versao}}">
 </div>
             <div class="card-content">
-                <h4>{{this.marca}} {{this.modelo}}</h4>
+                <h4>{{this.marca}} {{this.modelo}} {{this.versao}}</h4>
                 <p class="card-details">{{this.ano_modelo}} | {{this.km}} km</p>
                 <p class="card-price">R$ {{this.valor_venda}}</p>
                 <a href="/veiculo/{{this.id}}" class="btn-card">Ver Detalhes</a>
