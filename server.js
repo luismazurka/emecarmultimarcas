@@ -54,11 +54,25 @@ app.use(
   })
 );
 
-const requireLogin = (req, res, next) => {
+// Este novo middleware verifica se o usuário está logado E se tem um dos perfis permitidos
+const authorize = (allowedRoles) => {
+  return (req, res, next) => {
+    // 1. Verifica se está logado
     if (!req.session.userId) {
-        return res.redirect('/login');
+      return res.redirect('/login');
     }
-    next();
+
+    // 2. Pega o perfil do usuário da sessão que guardamos no login
+    const userRole = req.session.userRole;
+
+    // 3. Verifica se o perfil do usuário está na lista de perfis permitidos para a rota
+    if (allowedRoles.includes(userRole)) {
+      next(); // Perfil permitido! Deixa o usuário passar para a rota.
+    } else {
+      // Perfil não permitido! Envia uma mensagem de erro.
+      res.status(403).send('<h1>Acesso Proibido</h1><p>Você não tem permissão para acessar esta página.</p>');
+    }
+  };
 };
 
 // =========================================================================
@@ -73,6 +87,14 @@ hbs.registerHelper('eq', function (a, b) {
 // No topo do server.js
 hbs.registerHelper('json', function(context) {
     return JSON.stringify(context);
+});
+
+// Helper para verificar se um item está numa lista
+hbs.registerHelper('ifIn', function(elem, list, options) {
+    if(list.split(',').indexOf(elem) > -1) {
+        return options.fn(this);
+    }
+    return options.inverse(this);
 });
 
 // =========================================================================
@@ -140,6 +162,8 @@ app.get('/', async (req, res, next) => {
 
 app.get('/login', (req, res) => { res.render('login', { layout: false }); });
 
+app.get('/politica-de-privacidade', (req, res) => { res.render('politica-de-privacidade', { layout: false }); });
+
 app.post('/login', async (req, res) => {
     try {
         const { name, password } = req.body;
@@ -151,6 +175,7 @@ app.post('/login', async (req, res) => {
         if (passwordMatch) {
             req.session.userId = user.id;
             req.session.userName = user.name;
+            req.session.userRole = user.role;
             // CORREÇÃO AQUI: Redireciona para o painel após o login
             res.redirect('/painel'); 
         } else {
@@ -294,7 +319,7 @@ app.get('/logout', (req, res) => {
 
 
 
-app.get('/painel', requireLogin, async (req, res) => {
+app.get('/painel', authorize(['administrador', 'gerente', 'vendedor']), async (req, res) => {
     try {
         const vehicles = await knex('vehicles').select('*').orderBy('id', 'desc');
         const statuses = ['preparacao', 'manutencao', 'estoque', 'testdrive', 'reserva', 'vendido'];
@@ -305,6 +330,7 @@ app.get('/painel', requireLogin, async (req, res) => {
         res.render('painel', {
             pageTitle: 'Painel de Veículos',
             userName: req.session.userName,
+            userRole: req.session.userRole,
             isPainelPage: true,
             statuses: statuses,
             vehiclesByStatus: groupedVehicles
@@ -315,13 +341,14 @@ app.get('/painel', requireLogin, async (req, res) => {
     }
 });
 
-app.get('/usuarios', requireLogin, async (req, res) => {
+app.get('/usuarios', authorize(['administrador']), async (req, res) => {
     try {
         const usersFromDB = await knex('users').select('id', 'name', 'role');
         const formattedUsers = usersFromDB.map(user => ({ ...user, role_class: user.role.toLowerCase() }));
         res.render('usuarios', {
             pageTitle: 'Utilizadores',
             userName: req.session.userName,
+            userRole: req.session.userRole,
             isUserPage: true,
             users: formattedUsers
         });
@@ -331,12 +358,13 @@ app.get('/usuarios', requireLogin, async (req, res) => {
     }
 });
 
-app.get('/pessoas', requireLogin, async (req, res) => {
+app.get('/pessoas', authorize(['administrador', 'gerente', 'vendedor']), async (req, res) => {
     try {
         const people = await knex('people').select('id', 'name', 'cpf', 'city', 'cell_phone').orderBy('name');
         res.render('pessoas', {
             pageTitle: 'Pessoas',
             userName: req.session.userName,
+            userRole: req.session.userRole,
             isPessoasPage: true,
             people: people
         });
@@ -346,12 +374,13 @@ app.get('/pessoas', requireLogin, async (req, res) => {
     }
 });
 
-app.get('/admin/veiculos', requireLogin, async (req, res) => {
+app.get('/admin/veiculos', authorize(['administrador', 'gerente', 'vendedor']), async (req, res) => {
     try {
         const vehicles = await knex('vehicles').select('*').orderBy('marca', 'modelo');
         res.render('admin/veiculos', {
             pageTitle: 'Veículos',
             userName: req.session.userName,
+            userRole: req.session.userRole,
             isVeiculosPage: true,
             vehicles: vehicles
         });
@@ -364,7 +393,7 @@ app.get('/admin/veiculos', requireLogin, async (req, res) => {
 // Rota para RENDERIZAR a página de Indicadores
 // **INÍCIO DA CORREÇÃO**
 // Rota para RENDERIZAR a página de Indicadores
-app.get('/indicadores', requireLogin, async (req, res) => {
+app.get('/indicadores', authorize(['administrador', 'gerente', 'vendedor']), async (req, res) => {
     try {
         const vehicles = await knex('vehicles').select('status', 'created_at', 'marca', 'modelo');
         const today = new Date();
@@ -421,6 +450,7 @@ app.get('/indicadores', requireLogin, async (req, res) => {
         res.render('indicadores', {
             pageTitle: 'Indicadores',
             userName: req.session.userName,
+            userRole: req.session.userRole,
             isIndicadoresPage: true,
             indicators: indicators
         });
@@ -432,12 +462,13 @@ app.get('/indicadores', requireLogin, async (req, res) => {
 // **FIM DA CORREÇÃO**
 
 // Adicionar na Secção 6 - ROTAS PROTEGIDAS
-app.get('/mensagens', requireLogin, async (req, res) => {
+app.get('/mensagens', authorize(['administrador', 'gerente', 'vendedor']), async (req, res) => {
     try {
         const messages = await knex('messages').select('*').orderBy('created_at', 'desc');
         res.render('mensagens', {
             pageTitle: 'Mensagens',
             userName: req.session.userName,
+            userRole: req.session.userRole,
             isMensagensPage: true,
             messages: messages
         });
@@ -452,7 +483,7 @@ app.get('/mensagens', requireLogin, async (req, res) => {
 // =========================================================================
 
 // --- API para Utilizadores ---
-app.get('/api/usuarios/:id', requireLogin, async (req, res) => {
+app.get('/api/usuarios/:id', authorize(['administrador']), async (req, res) => {
     try {
         const { id } = req.params;
         const user = await knex('users').where({ id }).select('id', 'name', 'role', 'created_at').first();
@@ -466,7 +497,7 @@ app.get('/api/usuarios/:id', requireLogin, async (req, res) => {
         res.status(500).json({ error: 'Ocorreu um erro interno.' });
     }
 });
-app.post('/api/usuarios', requireLogin, async (req, res) => {
+app.post('/api/usuarios', authorize(['administrador']), async (req, res) => {
     try {
         const { name, role, password } = req.body;
         if (!name || !role || !password) {
@@ -482,7 +513,7 @@ app.post('/api/usuarios', requireLogin, async (req, res) => {
         res.status(500).json({ error: 'Ocorreu um erro interno.' });
     }
 });
-app.put('/api/usuarios/:id', requireLogin, async (req, res) => {
+app.put('/api/usuarios/:id', authorize(['administrador']), async (req, res) => {
     try {
         const { id } = req.params;
         const { name, role, password } = req.body;
@@ -502,7 +533,7 @@ app.put('/api/usuarios/:id', requireLogin, async (req, res) => {
         res.status(500).json({ error: 'Ocorreu um erro interno.' });
     }
 });
-app.delete('/api/usuarios/:id', requireLogin, async (req, res) => {
+app.delete('/api/usuarios/:id', authorize(['administrador']), async (req, res) => {
     try {
         const { id } = req.params;
         const deletedCount = await knex('users').where({ id }).del();
@@ -519,7 +550,7 @@ app.delete('/api/usuarios/:id', requireLogin, async (req, res) => {
 
 
 // --- API para Pessoas ---
-app.get('/api/pessoas/:id', requireLogin, async (req, res) => {
+app.get('/api/pessoas/:id', authorize(['administrador', 'gerente', 'vendedor']), async (req, res) => {
     try {
         const { id } = req.params;
         const person = await knex('people').where({ id }).first();
@@ -536,7 +567,7 @@ app.get('/api/pessoas/:id', requireLogin, async (req, res) => {
         res.status(500).json({ error: 'Erro interno do servidor.' });
     }
 });
-app.post('/api/pessoas', requireLogin, personDocumentUpload, async (req, res) => {
+app.post('/api/pessoas', authorize(['administrador', 'gerente', 'vendedor']), personDocumentUpload, async (req, res) => {
     try {
         const personData = req.body;
         for (const key in personData) { if (personData[key] === '') { personData[key] = null; } }
@@ -556,7 +587,7 @@ app.post('/api/pessoas', requireLogin, personDocumentUpload, async (req, res) =>
         res.status(500).json({ error: 'Erro interno do servidor.' });
     }
 });
-app.put('/api/pessoas/:id', requireLogin, personDocumentUpload, async (req, res) => {
+app.put('/api/pessoas/:id', authorize(['administrador', 'gerente', 'vendedor']), personDocumentUpload, async (req, res) => {
     try {
         const { id } = req.params;
         const personData = req.body;
@@ -581,7 +612,7 @@ app.put('/api/pessoas/:id', requireLogin, personDocumentUpload, async (req, res)
         res.status(500).json({ error: 'Erro interno do servidor.' });
     }
 });
-app.delete('/api/pessoas/:id', requireLogin, async (req, res) => {
+app.delete('/api/pessoas/:id', authorize(['administrador', 'gerente', 'vendedor']), async (req, res) => {
     try {
         const { id } = req.params;
         const deletedCount = await knex('people').where({ id }).del();
@@ -598,7 +629,7 @@ app.delete('/api/pessoas/:id', requireLogin, async (req, res) => {
 
 
 // --- API para Veículos ---
-app.get('/api/veiculos/:id', requireLogin, async (req, res) => {
+app.get('/api/veiculos/:id', authorize(['administrador', 'gerente', 'vendedor']), async (req, res) => {
     try {
         const { id } = req.params;
         const vehicle = await knex('vehicles').where({ id }).first();
@@ -615,7 +646,7 @@ app.get('/api/veiculos/:id', requireLogin, async (req, res) => {
     }
 });
 // No seu server.js
-app.post('/api/veiculos', requireLogin, vehiclePhotoUpload, async (req, res) => {
+app.post('/api/veiculos', authorize(['administrador', 'gerente', 'vendedor']), vehiclePhotoUpload, async (req, res) => {
     try {
         const vehicleData = req.body;
 
@@ -648,7 +679,7 @@ app.post('/api/veiculos', requireLogin, vehiclePhotoUpload, async (req, res) => 
     }
 });
 // No seu server.js
-app.put('/api/veiculos/:id', requireLogin, vehiclePhotoUpload, async (req, res) => {
+app.put('/api/veiculos/:id', authorize(['administrador', 'gerente', 'vendedor']), vehiclePhotoUpload, async (req, res) => {
     try {
         const { id } = req.params;
         const vehicleData = req.body;
@@ -684,7 +715,7 @@ app.put('/api/veiculos/:id', requireLogin, vehiclePhotoUpload, async (req, res) 
         res.status(500).json({ error: 'Erro interno ao editar veículo.' });
     }
 });
-app.delete('/api/veiculos/:id', requireLogin, async (req, res) => {
+app.delete('/api/veiculos/:id', authorize(['administrador', 'gerente', 'vendedor']), async (req, res) => {
     try {
         const { id } = req.params;
         const deletedCount = await knex('vehicles').where({ id }).del();
@@ -698,7 +729,7 @@ app.delete('/api/veiculos/:id', requireLogin, async (req, res) => {
         res.status(500).json({ error: 'Erro interno ao remover veículo.' });
     }
 });
-app.put('/api/veiculos/:id/status', requireLogin, async (req, res) => {
+app.put('/api/veiculos/:id/status', authorize(['administrador', 'gerente', 'vendedor']), async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
@@ -717,7 +748,7 @@ app.put('/api/veiculos/:id/status', requireLogin, async (req, res) => {
 
 // Adicionar na Secção 7 - ROTAS DA API REST
 // --- API para Mensagens ---
-app.get('/api/mensagens', requireLogin, async (req, res) => {
+app.get('/api/mensagens', authorize(['administrador', 'gerente', 'vendedor']), async (req, res) => {
     try {
         const messages = await knex('messages').select('*').orderBy('created_at', 'desc');
         // Converte o campo de detalhes de JSON para objeto
@@ -730,7 +761,7 @@ app.get('/api/mensagens', requireLogin, async (req, res) => {
     }
 });
 
-app.put('/api/mensagens/:id/read', requireLogin, async (req, res) => {
+app.put('/api/mensagens/:id/read', authorize(['administrador', 'gerente', 'vendedor']), async (req, res) => {
     try {
         const { id } = req.params;
         const { read } = req.body;
@@ -745,7 +776,7 @@ app.put('/api/mensagens/:id/read', requireLogin, async (req, res) => {
     }
 });
 
-app.delete('/api/mensagens/:id', requireLogin, async (req, res) => {
+app.delete('/api/mensagens/:id', authorize(['administrador', 'gerente', 'vendedor']), async (req, res) => {
     try {
         const { id } = req.params;
         const deletedCount = await knex('messages').where({ id }).del();

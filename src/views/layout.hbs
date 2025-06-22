@@ -30,7 +30,9 @@
                 <li><a href="/admin/veiculos">🚗 Veículos</a></li>
                 <li><a href="/pessoas">👥 Pessoas</a></li>
                 <li><a href="/mensagens">📨 Mensagens</a></li>
+                {{#ifIn userRole 'administrador'}}
                 <li><a href="/usuarios">💼 Usuários</a></li>
+                {{/ifIn}}
             </ul>
         </nav>
 
@@ -38,7 +40,7 @@
             <img src="/img/user.png" alt="Usuário" class="user-avatar" />
             <div class="user-info">
                 <span class="user-name">{{userName}}</span>
-                <span class="user-role">Administrador</span>
+                <span class="user-role">{{userRole}}</span>
 
                 <div class="user-actions">
                     <a href="/logout">Sair</a>

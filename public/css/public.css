@@ -61,6 +61,7 @@ section {
     background-color: var(--cor-fundo-claro);
     color: var(--cor-texto-escuro);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    /*border-bottom: 3px solid var(--cor-primaria);*/
 }
 
 .header-container {
@@ -70,18 +71,22 @@ section {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    
+    
 }
 
 .header-top { /* CORRIGIDO de .header-superior */
-    background-color: var(--cor-texto-escuro);
+    background-color: #1c1c1c;
     color: var(--cor-fundo-claro);
     padding: 0.5rem 0;
     font-size: 0.9rem;
+    
 }
 
 .contatos-topo {
     display: flex;
     gap: 1.5rem;
+    
 }
 
 .contatos-topo span {
@@ -92,6 +97,7 @@ section {
 
 .header-main { /* CORRIGIDO de .header-navegacao */
     padding: 1rem 0;
+    border-top: 3px solid var(--cor-primaria);
 }
 
 .logo img {
@@ -182,14 +188,14 @@ section {
 
 .marcas-grid img {
     height: 35px;
-    filter: grayscale(100%);
-    opacity: 0.7;
-    transition: all 0.3s ease;
+    width: 80px;
+    /*transition: transform 0.2s ease;*/
 }
-.marcas-grid img:hover {
-    filter: grayscale(0%);
-    opacity: 1;
-}
+
+
+/*.marcas-grid img:hover {
+    transform: scale(1.1);
+}*/
 
 .redes-sociais {
     display: flex;
@@ -199,11 +205,11 @@ section {
 
 .redes-sociais .icon img {
     width: 30px;
-    transition: transform 0.3s ease;
+    transition: transform 0.2s ease;
 }
 
 .redes-sociais .icon:hover img {
-    transform: scale(1.15);
+    transform: scale(2.0);
 }
 
 .links-legais {
@@ -218,7 +224,7 @@ section {
 }
 
 .links-legais a:hover {
-    text-decoration: underline;
+    /*text-decoration: underline;*/
     color: var(--cor-primaria);
 }
 
@@ -471,7 +477,7 @@ section {
 .about-text h2 {
     font-size: 2.5rem;
     margin-bottom: 1.5rem;
-    color: var(--cor-primaria);
+    color: (--cor-texto-claro);
 }
 
 .about-text p {
@@ -592,7 +598,7 @@ section {
 .form-column h2, .info-column h2 {
     font-size: 2rem;
     margin-bottom: 1.5rem;
-    color: var(--cor-primaria);
+    color: (--cor-texto-claro);
 }
 
 .form-group {
@@ -1027,5 +1033,36 @@ section {
     transition: background-color 0.3s ease;
 }
 .btn-main-action:hover {
+    background-color: var(--cor-primaria-hover);
+}
+
+/* ========================================================================= */
+/* AJUSTES NO HEADER PARA LOGO MAIOR E INTEGRADA (21/06/2025)            */
+/* ========================================================================= */
+
+/* Passo 1: Aumentar o tamanho da logo */
+.logo img {
+    height: 80px; /* Aumentado de 60px para 80px. Ajuste se precisar. */
+}
+
+/* Passo 2: Mudar o fundo do cabeçalho principal para escuro */
+/* A classe .header-main já existe, estamos apenas sobrescrevendo o fundo */
+.header-main {
+    background-color: #000; /* Usa a mesma cor de fundo do site */
+    padding: 1.2rem 0; /* Aumenta um pouco o espaçamento vertical */
+}
+
+/* Passo 3: Mudar a cor dos links do menu para branco */
+.menu-principal a {
+    color: var(--cor-texto-claro); /* Muda a cor do texto dos links para branco */
+}
+
+/* Passo 4: Ajustar o efeito hover dos links para o tema escuro */
+.menu-principal a:hover {
+    background-color: var(--cor-superficie-escura); /* Efeito hover mais sutil no fundo escuro */
+}
+
+/* O botão de destaque já tem um bom contraste, mas garantimos o hover dele */
+.menu-principal a.btn-destaque:hover {
     background-color: var(--cor-primaria-hover);
 }
