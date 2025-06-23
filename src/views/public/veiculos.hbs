@@ -2,6 +2,7 @@
 <div class="page-layout">
 
     {{!-- BARRA DE FILTROS LATERAL --}}
+    {{!-- CÓDIGO FINAL E COMPLETO PARA A BARRA LATERAL DE FILTROS --}}
     <aside class="filter-sidebar">
         <div class="filter-header">
             <h3><i class="ri-filter-3-line"></i> Filtros</h3>
@@ -10,52 +11,84 @@
             <div class="filter-group">
                 <h4>Faixa de Preço</h4>
                 <div class="price-range">
-                    <input type="number" name="preco_min" placeholder="Mínimo">
+                    <input type="number" name="preco_min" placeholder="Mínimo" value="{{filtros.preco_min}}">
                     <span>-</span>
-                    <input type="number" name="preco_max" placeholder="Máximo">
+                    <input type="number" name="preco_max" placeholder="Máximo" value="{{filtros.preco_max}}">
                 </div>
             </div>
             <div class="filter-group">
                 <h4>Ano do Modelo</h4>
-                 <div class="price-range">
-                    <input type="number" name="ano_min" placeholder="De">
+                <div class="price-range">
+                    <input type="number" name="ano_min" placeholder="De" value="{{filtros.ano_min}}">
                     <span>-</span>
-                    <input type="number" name="ano_max" placeholder="Até">
+                    <input type="number" name="ano_max" placeholder="Até" value="{{filtros.ano_max}}">
                 </div>
             </div>
 
+            {{!-- ============================================= --}}
+            {{!-- INÍCIO DOS BLOCOS DINÂMICOS --}}
+            {{!-- ============================================= --}}
 
+            {{#if opcoesFiltro.tipos}}
             <div class="filter-group">
                 <h4>Tipo</h4>
                 <div class="checkbox-list">
-                    {{!-- checkbox dos Tipos carregados dinamicamente --}}
+                    {{#each opcoesFiltro.tipos}}
+                    <label>
+                        <input type="checkbox" name="tipo" value="{{this}}" {{#ifIn this
+                            ../filtros.tipo}}checked{{/ifIn}}>
+                        {{this}}
+                    </label>
+                    {{/each}}
                 </div>
             </div>
+            {{/if}}
 
-
+            {{#if opcoesFiltro.marcas}}
             <div class="filter-group">
                 <h4>Marca</h4>
                 <div class="checkbox-list">
-                    {{!-- checkbox das Marcas carregados dinamicamente --}}
+                    {{#each opcoesFiltro.marcas}}
+                    <label>
+                        <input type="checkbox" name="marca" value="{{this}}" {{#ifIn this
+                            ../filtros.marca}}checked{{/ifIn}}>
+                        {{this}}
+                    </label>
+                    {{/each}}
                 </div>
             </div>
+            {{/if}}
 
-
+            {{#if opcoesFiltro.modelos}}
             <div class="filter-group">
                 <h4>Modelo</h4>
                 <div class="checkbox-list">
-                    {{!-- checkbox dos Modelos carregados dinamicamente --}}
+                    {{#each opcoesFiltro.modelos}}
+                    <label>
+                        <input type="checkbox" name="modelo" value="{{this}}" {{#ifIn this
+                            ../filtros.modelo}}checked{{/ifIn}}>
+                        {{this}}
+                    </label>
+                    {{/each}}
                 </div>
             </div>
+            {{/if}}
 
-
+            {{#if opcoesFiltro.lojas}}
             <div class="filter-group">
                 <h4>Loja</h4>
                 <div class="checkbox-list">
-                    {{!-- checkbox das Lojas carregados dinamicamente --}}
+                    {{#each opcoesFiltro.lojas}}
+                    <label>
+                        {{!-- O 'name' aqui continua "loja" pois é o nome do parâmetro que a URL irá gerar --}}
+                        <input type="checkbox" name="loja" value="{{this}}" {{#ifIn this
+                            ../filtros.loja}}checked{{/ifIn}}>
+                        {{this}}
+                    </label>
+                    {{/each}}
                 </div>
             </div>
-
+            {{/if}}
 
             <div class="filter-actions">
                 <button type="submit" id="btn-apply" class="btn-apply-filters" disabled>Aplicar Filtros</button>
@@ -71,32 +104,32 @@
             <div class="sort-options">
                 <label for="sort-by">Ordenar por:</label>
                 <select id="sort-by" name="sort-by">
-    <option value="recentes" {{#if (eq sortBy 'recentes')}}selected{{/if}}>Mais Recentes</option>
-    <option value="preco-menor" {{#if (eq sortBy 'preco-menor')}}selected{{/if}}>Menor Preço</option>
-    <option value="preco-maior" {{#if (eq sortBy 'preco-maior')}}selected{{/if}}>Maior Preço</option>
-</select>
+                    <option value="recentes" {{#if (eq sortBy 'recentes' )}}selected{{/if}}>Mais Recentes</option>
+                    <option value="preco-menor" {{#if (eq sortBy 'preco-menor' )}}selected{{/if}}>Menor Preço</option>
+                    <option value="preco-maior" {{#if (eq sortBy 'preco-maior' )}}selected{{/if}}>Maior Preço</option>
+                </select>
             </div>
         </div>
 
         <div class="vehicle-grid">
             {{#each veiculos}}
-                <div class="vehicle-card">
-                    <div class="card-image">
-                        {{#if this.fotos_paths.[0]}}
-                            <img src="/uploads/{{this.fotos_paths.[0]}}" alt="{{this.marca}} {{this.modelo}}">
-                        {{else}}
-                             <img src="/images/sem-foto.png" alt="Sem foto disponível">
-                        {{/if}}
-                    </div>
-                    <div class="card-content">
-                        <h4>{{this.marca}} {{this.modelo}}</h4>
-                        <p class="card-details">{{this.ano_modelo}} | {{this.km}} km</p>
-                        <p class="card-price">R$ {{this.valor_venda}}</p>
-                        <a href="/veiculo/{{this.id}}" class="btn-card" target="_blank">Ver Detalhes</a>
-                    </div>
+            <div class="vehicle-card">
+                <div class="card-image">
+                    {{#if this.fotos_paths.[0]}}
+                    <img src="/uploads/{{this.fotos_paths.[0]}}" alt="{{this.marca}} {{this.modelo}}">
+                    {{else}}
+                    <img src="/images/sem-foto.png" alt="Sem foto disponível">
+                    {{/if}}
                 </div>
+                <div class="card-content">
+                    <h4>{{this.marca}} {{this.modelo}}</h4>
+                    <p class="card-details">{{this.versao}} | {{this.ano_modelo}} | {{this.km}} km</p>
+                    <p class="card-price">R$ {{this.valor_venda}}</p>
+                    <a href="/veiculo/{{this.id}}" class="btn-card" target="_blank">Ver Detalhes</a>
+                </div>
+            </div>
             {{else}}
-                <p>Nenhum veículo encontrado com os filtros selecionados.</p>
+            <p>Nenhum veículo encontrado com os filtros selecionados.</p>
             {{/each}}
         </div>
     </main>

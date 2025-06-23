@@ -90,10 +90,35 @@ hbs.registerHelper('json', function(context) {
 });
 
 // Helper para verificar se um item está numa lista
+// Em server.js, substitua o helper 'ifIn' inteiro por este:
+
+// Helper para verificar se um item está numa lista (versão robusta)
 hbs.registerHelper('ifIn', function(elem, list, options) {
-    if(list.split(',').indexOf(elem) > -1) {
-        return options.fn(this);
+    // Caso 1: A lista de filtros não existe (ex: primeiro carregamento da página).
+    // Se 'list' for undefined ou null, o item não está na lista.
+    if (list === undefined || list === null) {
+        return options.inverse(this);
     }
+
+    // Caso 2: A lista é um array (múltiplos checkboxes com o mesmo nome foram selecionados).
+    // Ex: req.query.marca = ['Fiat', 'Ford']
+    if (Array.isArray(list)) {
+        if (list.includes(elem)) {
+            return options.fn(this); // O item foi encontrado no array.
+        }
+        return options.inverse(this);
+    }
+    
+    // Caso 3: A lista é uma string (apenas um checkbox foi selecionado).
+    // Ex: req.query.marca = 'Fiat'
+    if (typeof list === 'string') {
+        if (list === elem) {
+            return options.fn(this); // O item é igual à string.
+        }
+        return options.inverse(this);
+    }
+
+    // Se não for nenhum dos casos acima, por segurança, retorna que não encontrou.
     return options.inverse(this);
 });
 
@@ -217,53 +242,82 @@ app.get('/fale-conosco', (req, res) => {
 
 // Em server.js, substitua a rota GET /veiculos existente por esta
 
+// NOVO CÓDIGO para o server.js (substitua a rota GET /veiculos inteira)
+
+// NOVO CÓDIGO FINAL para o server.js (substitua a rota GET /veiculos inteira)
+
+// CÓDIGO CORRIGIDO para o server.js (substitua a rota GET /veiculos inteira)
+
 app.get('/veiculos', async (req, res, next) => {
     try {
-        // --- LÓGICA DE ORDENAÇÃO ---
-        const sortBy = req.query.sort || 'recentes'; // Pega o valor da URL, ou usa 'recentes' como padrão
+        // --- 1. BUSCA DAS OPÇÕES DE FILTRO ---
+        const [marcasDb, tiposDb, modelosDb, lojasDb] = await Promise.all([
+            knex('vehicles').distinct('marca').where('exibir_site', true).whereNotNull('marca').orderBy('marca', 'asc'),
+            knex('vehicles').distinct('tipo').where('exibir_site', true).whereNotNull('tipo').orderBy('tipo', 'asc'),
+            knex('vehicles').distinct('modelo').where('exibir_site', true).whereNotNull('modelo').orderBy('modelo', 'asc'),
+            // CORREÇÃO AQUI: Trocado 'loja' por 'disponivel_em'
+            knex('vehicles').distinct('disponivel_em').where('exibir_site', true).whereNotNull('disponivel_em').orderBy('disponivel_em', 'asc') 
+        ]);
+
+        const marcas = marcasDb.map(item => item.marca);
+        const tipos = tiposDb.map(item => item.tipo);
+        const modelos = modelosDb.map(item => item.modelo);
+        // CORREÇÃO AQUI: Trocado item.loja por item.disponivel_em
+        const lojas = lojasDb.map(item => item.disponivel_em);
+
+        // --- 2. LÓGICA DE ORDENAÇÃO (Sem alterações) ---
+        const sortBy = req.query.sort || 'recentes';
         let orderByColumn = 'created_at';
         let orderDirection = 'desc';
-
         switch (sortBy) {
             case 'preco-menor':
-                orderByColumn = 'valor_venda';
-                orderDirection = 'asc';
-                break;
+                orderByColumn = 'valor_venda'; orderDirection = 'asc'; break;
             case 'preco-maior':
-                orderByColumn = 'valor_venda';
-                orderDirection = 'desc';
-                break;
-            // O caso 'recentes' já é o padrão
+                orderByColumn = 'valor_venda'; orderDirection = 'desc'; break;
         }
 
-        // Busca os veículos no banco JÁ COM A ORDEM CORRETA
-        const veiculosDb = await knex('vehicles')
-            .where('exibir_site', true)
-            .orderBy(orderByColumn, orderDirection); // Usa as variáveis de ordenação
-            //.debug(true); // <--- ADICIONE ESTA LINHA PARA DEPURAR
+        // --- 3. LÓGICA DE FILTRAGEM ---
+        // A variável 'loja' vem do 'name' do input no formulário, então mantemos ela
+        const { preco_min, preco_max, ano_min, ano_max, marca, tipo, modelo, loja } = req.query;
+        let query = knex('vehicles').where('exibir_site', true);
+        
+        if (preco_min) query = query.where('valor_venda', '>=', Number(preco_min));
+        if (preco_max) query = query.where('valor_venda', '<=', Number(preco_max));
+        if (ano_min) query = query.where('ano_modelo', '>=', Number(ano_min));
+        if (ano_max) query = query.where('ano_modelo', '<=', Number(ano_max));
+        if (marca) query = query.whereIn('marca', Array.isArray(marca) ? marca : [marca]);
+        if (tipo) query = query.whereIn('tipo', Array.isArray(tipo) ? tipo : [tipo]);
+        if (modelo) query = query.whereIn('modelo', Array.isArray(modelo) ? modelo : [modelo]);
+        // CORREÇÃO AQUI: Filtra pela coluna 'disponivel_em' usando os valores da query 'loja'
+        if (loja) {
+            query = query.whereIn('disponivel_em', Array.isArray(loja) ? loja : [loja]);
+        }
 
-        // (A função parseVeiculos continua a mesma)
+        // --- 4. EXECUÇÃO DA QUERY E RENDERIZAÇÃO ---
+        const veiculosDb = await query.orderBy(orderByColumn, orderDirection);
         const parseVeiculos = (veiculos) => {
             return veiculos.map(vehicle => {
                 let fotosArray = [];
                 if (vehicle.fotos_paths && typeof vehicle.fotos_paths === 'string') {
-                    try {
-                        fotosArray = JSON.parse(vehicle.fotos_paths);
-                    } catch (e) { fotosArray = []; }
-                } else if (Array.isArray(vehicle.fotos_paths)) {
-                    fotosArray = vehicle.fotos_paths;
-                }
+                    try { fotosArray = JSON.parse(vehicle.fotos_paths); } catch (e) { fotosArray = []; }
+                } else if (Array.isArray(vehicle.fotos_paths)) { fotosArray = vehicle.fotos_paths; }
                 return { ...vehicle, fotos_paths: fotosArray };
             });
         };
-
         const veiculos = parseVeiculos(veiculosDb);
         
         res.render('public/veiculos', {
             title: 'Nosso Estoque',
             layout: 'public_layout',
             veiculos,
-            sortBy: sortBy // Envia a opção de ordenação de volta para a view
+            sortBy: sortBy,
+            filtros: req.query,
+            opcoesFiltro: {
+                marcas,
+                tipos,
+                modelos,
+                lojas // A variável 'lojas' continua com o mesmo nome, não tem problema
+            }
         });
 
     } catch (error) {

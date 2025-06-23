@@ -369,7 +369,7 @@ body {
 
 /* Estilos para a Página de Login */
 .login-body {
-    background-color: #1a1a1a;
+    background-color: #000000;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -389,6 +389,13 @@ body {
 
 .login-container .logo-box {
     margin-bottom: 1.5rem;
+    background-color: #000000;
+    border-radius: 8px;
+    height: 120px;
+    weight: 240px;
+    align-items: center;
+    display: flex;
+    justify-content: center;
 }
 
 .login-container h2 {

@@ -42,10 +42,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Nota: A lógica para realmente aplicar os filtros via API será implementada depois.
     // Por enquanto, o formulário não fará nada ao ser enviado.
-    filterSidebar.querySelector('form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        alert('A funcionalidade de filtro será implementada em breve!');
-    });
+    // NOVO CÓDIGO para o veiculos-public.js
+
+// Ação ao enviar o formulário (clicar em "Aplicar Filtros")
+// NOVO CÓDIGO CORRIGIDO para o veiculos-public.js
+
+// Ação ao enviar o formulário (clicar em "Aplicar Filtros")
+filterSidebar.querySelector('form').addEventListener('submit', (e) => {
+    e.preventDefault(); // Impede o recarregamento padrão
+
+    // 1. Começa com uma URL "limpa", contendo apenas o caminho base.
+    const baseUrl = window.location.origin + window.location.pathname;
+    const newUrl = new URL(baseUrl);
+
+    // 2. Preserva o parâmetro de ordenação ('sort'), se ele existir na URL atual.
+    const currentParams = new URLSearchParams(window.location.search);
+    if (currentParams.has('sort')) {
+        newUrl.searchParams.set('sort', currentParams.get('sort'));
+    }
+
+    // 3. Adiciona os filtros ATUAIS do formulário à URL limpa.
+    const formData = new FormData(e.target);
+    for (const [key, value] of formData.entries()) {
+        if (value) { // Adiciona apenas se o campo tiver um valor
+            newUrl.searchParams.append(key, value);
+        }
+    }
+
+    // 4. Redireciona o navegador para a nova URL, que agora é sempre consistente.
+    window.location.href = newUrl.toString();
+});
 
 
 
