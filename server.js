@@ -201,8 +201,8 @@ app.post('/login', async (req, res) => {
             req.session.userId = user.id;
             req.session.userName = user.name;
             req.session.userRole = user.role;
-            // CORREÇÃO AQUI: Redireciona para o painel após o login
-            res.redirect('/painel'); 
+            // CORREÇÃO AQUI: Redireciona para o welcome após o login
+            res.redirect('/welcome'); 
         } else {
             return res.render('login', { layout: false, error: 'Utilizador ou senha inválidos.' });
         }
@@ -215,7 +215,7 @@ app.post('/login', async (req, res) => {
 app.get('/logout', (req, res) => {
     req.session.destroy(err => {
         if (err) {
-            return res.redirect('/painel');
+            return res.redirect('/welcome');
         }
         res.clearCookie('connect.sid');
         res.redirect('/login');
@@ -362,6 +362,19 @@ app.get('/veiculo/:id', async (req, res, next) => {
 // =========================================================================
 // 6. ROTAS PROTEGIDAS - RENDERIZAÇÃO DE PÁGINAS
 // =========================================================================
+
+
+// ROTA PARA A PÁGINA DE BOAS-VINDAS (NOVA ROTA)
+app.get('/welcome', authorize(['administrador', 'gerente', 'vendedor']), (req, res) => {
+    res.render('welcome', {
+        pageTitle: 'Bem-vindo(a)!',
+        userName: req.session.userName,
+        userRole: req.session.userRole
+        // Não defina 'is...Page' para não marcar nenhum item no menu lateral,
+        // a menos que queira criar um item de menu para esta página.
+    });
+});
+
 
 app.get('/logout', (req, res) => {
     req.session.destroy(err => {
@@ -542,6 +555,11 @@ app.get('/api/usuarios/:id', authorize(['administrador']), async (req, res) => {
         const { id } = req.params;
         const user = await knex('users').where({ id }).select('id', 'name', 'role', 'created_at').first();
         if (user) {
+            if (user.created_at) {
+        user.created_at_formatted = new Date(user.created_at).toLocaleString('pt-BR');
+    } else {
+        user.created_at_formatted = 'Não disponível';
+    }
             res.json(user);
         } else {
             res.status(404).json({ error: 'Utilizador não encontrado' });

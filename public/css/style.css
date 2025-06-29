@@ -750,3 +750,46 @@ body {
 .bar-wrapper { background: #e9ecef; border-radius: 4px; }
 .bar { background: #0dcaf0; height: 25px; border-radius: 4px; transition: width 0.5s ease-out; }
 .bar-value { font-weight: bold; }
+
+/* =========================================================================
+   SISTEMA DE NOTIFICAÇÃO (TOAST)
+   ========================================================================= */
+
+#notification-container {
+    position: fixed; /* Fica fixo na tela mesmo com scroll */
+    top: 80px;       /* Um pouco abaixo do topo */
+    right: 20px;
+    z-index: 9999;   /* Garante que fique acima de outros elementos */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;       /* Espaço entre as notificações */
+}
+
+.notification {
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transform: translateX(100%); /* Começa fora da tela */
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Animação de entrada e saída */
+    min-width: 300px;
+}
+
+.notification.show {
+    opacity: 1;
+    transform: translateX(0); /* Move para a posição final */
+}
+
+/* Estilo para notificações de sucesso */
+.notification.success {
+    background-color: #28a745; /* Verde */
+    border-left: 5px solid #218838;
+}
+
+/* Estilo para notificações de erro */
+.notification.error {
+    background-color: #dc3545; /* Vermelho */
+    border-left: 5px solid #c82333;
+}
